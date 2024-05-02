@@ -7,10 +7,10 @@ CC = g++
 CFLAGS = -Wall -Wextra -std=c++11
 
 # Source files
-SOURCES = main.cpp
+SOURCES = sender.cpp
 
 # Executable name
-EXECUTABLE = myprogram
+EXECUTABLE = sender
 
 all: $(EXECUTABLE)
 
