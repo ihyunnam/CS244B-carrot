@@ -7,15 +7,18 @@ CC = g++
 CFLAGS = -Wall -Wextra -std=c++11
 
 # Source files
-SOURCES = sender.cpp
+SOURCES = intermediary.cpp receiver.cpp sender.cpp
 
 # Executable name
-EXECUTABLE = sender
+EXECUTABLES = $(SOURCES:.cpp=)
 
-all: $(EXECUTABLE)
+all: $(EXECUTABLES)
 
-$(EXECUTABLE): $(SOURCES)
-	$(CC) $(CFLAGS) $(SOURCES) -o $(EXECUTABLE)
+%: %.cpp
+	$(CC) $(CFLAGS) $< -o $@
+
+# $(EXECUTABLE): $(SOURCES)
+# 	$(CC) $(CFLAGS) $(SOURCES) -o $(EXECUTABLE)
 
 clean:
-	rm -f $(EXECUTABLE)
+	rm -f $(EXECUTABLES)
