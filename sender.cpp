@@ -40,7 +40,7 @@ int main() {
     struct sockaddr_in dest_addr;
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(PORT); // Destination port
-    inet_pton(AF_INET, "171.64.15.27", &dest_addr.sin_addr); // Destination IP address
+    inet_pton(AF_INET, "171.64.15.7", &dest_addr.sin_addr); // Destination IP address
 
     while (true) {
         // Get message from standard input
@@ -48,6 +48,7 @@ int main() {
         cin.getline(buffer, MAX_BUFFER_SIZE);
 
         // Sending data to the specific IP address
+        printf("buffer address: %llx dest_addr %llx \n", (long long int) buffer, (long long int) &dest_addr);
         sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
     }
 

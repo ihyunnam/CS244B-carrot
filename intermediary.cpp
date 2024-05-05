@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 
 #define PORT 12345
+#define PORT2 12346
 #define MAX_BUFFER_SIZE 1024
 
 using namespace std;
@@ -38,17 +39,17 @@ int main() {
 
     // Bind the socket with the server address
     if (bind(sockfd_send, (const struct sockaddr *)&servaddr_send, sizeof(servaddr_send)) < 0) {
-        cerr << "Binding failed" << endl;
+        cerr << "Binding failed 1" << endl;
         return -1;
     }
 
     servaddr_receive.sin_family = AF_INET;
     servaddr_receive.sin_addr.s_addr = INADDR_ANY;
-    servaddr_receive.sin_port = htons(PORT);
+    servaddr_receive.sin_port = htons(PORT2);
 
     // Bind the socket with the server address
     if (bind(sockfd_receive, (const struct sockaddr *)&servaddr_receive, sizeof(servaddr_receive)) < 0) {
-        cerr << "Binding failed" << endl;
+        cerr << "Binding failed 2" << endl;
         return -1;
     }
 
