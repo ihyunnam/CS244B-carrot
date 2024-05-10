@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+message CarrotMessage {
+  string ip_address = 1;
+  int32 port = 2;
+  string message = 3;
+}
