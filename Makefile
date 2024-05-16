@@ -15,7 +15,7 @@ EXECUTABLES = $(SOURCES:.cpp=)
 all: $(EXECUTABLES)
 
 %: %.cpp
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $< -o $@ -lprotobuf
 
 # $(EXECUTABLE): $(SOURCES)
 # 	$(CC) $(CFLAGS) $(SOURCES) -o $(EXECUTABLE)

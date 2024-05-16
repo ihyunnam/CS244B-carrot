@@ -17,6 +17,10 @@
 #include <iostream>
 #include <cstring>
 
+// Code for protobufs
+#include "protobufs/messages/message.pb.h"
+#include "protobufs/messages/message.pb.cc"
+
 #define PORT 12346
 using namespace std;
 
@@ -112,8 +116,18 @@ int main(int argc, char* argv[]) {
                 regs.orig_rax = SYS_getpid;
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
 
+                // Create a message
+                CarrotMessage message;
+                message.set_message(buffer);
+                message.set_port(ntohs(dest_addr.sin_port));
+                message.set_ip_address(inet_ntoa(dest_addr.sin_addr));
+
+                // Serialize the message
+                string serialized_data;
+                message.SerializeToString(&serialized_data);
+
                 // Also send to client
-                sendto(sockfd_send, buffer, strlen(buffer), 0, (const struct sockaddr *) &dest_addr, sizeof(dest_addr));
+                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *) &dest_addr, sizeof(dest_addr));
             }
             fprintf(stderr, "system call number %ld name %s from pid %d\n", syscall_num, callname(syscall_num), child_pid);
         }
