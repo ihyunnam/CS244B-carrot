@@ -81,13 +81,13 @@ int main() {
         int dest_port = deserialized_message.port();
         string message = deserialized_message.message();
 
+        dest_addr.sin_port = htons(dest_port);
+        inet_pton(AF_INET, dest_ip.c_str(), &dest_addr.sin_addr);
+
         cout << "Received message: " << message << endl;
 
-        cout << "IP Address: " << deserialized_message.ip_address() << endl;
-        cout << "Port Number: " << deserialized_message.port() << endl;
-
         // Sending data to the specific IP address
-        sendto(sockfd_send, buffer, strnlen(buffer, MAX_BUFFER_SIZE), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+        sendto(sockfd_send, message.c_str(), message.length(), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
     }
 
     return 0;
