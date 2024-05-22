@@ -67,6 +67,7 @@ int main() {
 
     int n;
     socklen_t len;
+    len = sizeof(cliaddr_receive);  // len is value/result
 
     while (true) {
         // Get message from standard input

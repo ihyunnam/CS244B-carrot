@@ -38,6 +38,12 @@ int main(int argc, char* argv[]) {
     servaddr_send.sin_family = AF_INET;
     servaddr_send.sin_addr.s_addr = INADDR_ANY;
     servaddr_send.sin_port = htons(PORT);
+    
+    // Intemediary address
+    struct sockaddr_in int_addr;
+    int_addr.sin_family = AF_INET;
+    int_addr.sin_port = htons(12346); // Destination port
+    inet_pton(AF_INET, "34.134.231.12", &int_addr.sin_addr); // Destination IP address
 
     // Bind to a socket
     if (bind(sockfd_send, (const struct sockaddr *)&servaddr_send, sizeof(servaddr_send)) < 0) {
@@ -127,7 +133,7 @@ int main(int argc, char* argv[]) {
                 message.SerializeToString(&serialized_data);
 
                 // Also send to client
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *) &dest_addr, sizeof(dest_addr));
+                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *) &int_addr, sizeof(int_addr));
             }
             fprintf(stderr, "system call number %ld name %s from pid %d\n", syscall_num, callname(syscall_num), child_pid);
         }
