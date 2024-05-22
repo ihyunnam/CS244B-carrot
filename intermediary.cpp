@@ -4,6 +4,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+// Code for protobufs
+#include "protobufs/messages/message.pb.h"
+#include "protobufs/messages/message.pb.cc"
+
 #define PORT 12345
 #define PORT2 12346
 #define MAX_BUFFER_SIZE 1024
@@ -54,6 +58,7 @@ int main() {
     }
 
     // Specify the destination address (IP address and port)
+    // TODO: Remove this when using carrotmessage
     struct sockaddr_in dest_addr;
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(PORT); // Destination port
@@ -66,8 +71,20 @@ int main() {
     while (true) {
         // Get message from standard input
         n = recvfrom(sockfd_receive, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr*>(&cliaddr_receive), &len);
-        buffer[n] = '\0';
-        cout << "Received message: " << buffer << endl;
+        // buffer[n] = '\0';
+
+        // Deserialized Message
+        CarrotMessage deserialized_message;
+        deserialized_message.ParseFromString(buffer);
+
+        string dest_ip = deserialized_message.ip_address();
+        int dest_port = deserialized_message.port();
+        string message = deserialized_message.message();
+
+        cout << "Received message: " << message << endl;
+
+        cout << "IP Address: " << deserialized_message.ip_address() << endl;
+        cout << "Port Number: " << deserialized_message.port() << endl;
 
         // Sending data to the specific IP address
         sendto(sockfd_send, buffer, strnlen(buffer, MAX_BUFFER_SIZE), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
