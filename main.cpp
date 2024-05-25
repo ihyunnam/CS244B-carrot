@@ -21,7 +21,7 @@
 #include "protobufs/messages/message.pb.h"
 #include "protobufs/messages/message.pb.cc"
 
-#define PORT 12346
+#define PORT 12345
 using namespace std;
 
 int main(int argc, char* argv[]) {
@@ -93,10 +93,12 @@ int main(int argc, char* argv[]) {
             if (syscall_num == SYS_sendto) {
 
                 // Read in and check buffer
-                string buf;
+                // string buf;
+                char buffer[1024];
                 size_t buffer_size = ptrace(PTRACE_PEEKDATA, child_pid, regs.rdx);
-                for (int i = 0; i < buffer_size; i+=1) {
-                    buffer += ptrace(PTRACE_PEEKDATA, child_pid, regs.rsi + i, 0);
+                for (size_t i = 0; i < buffer_size; i+=1) {
+                    // buffer += ptrace(PTRACE_PEEKDATA, child_pid, regs.rsi + i, 0);
+                    buffer[i] = ptrace(PTRACE_PEEKDATA, child_pid, regs.rsi + i, 0);
                     if (buffer[i] == '\0') {
                         break;
                     }
@@ -131,13 +133,12 @@ int main(int argc, char* argv[]) {
                 // Also send to client
                 sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *) &dest_addr, sizeof(dest_addr));
             } else if (syscall_num == SYS_recvfrom) {
-                char buffer[1024];
-
                 // Read in and check destination address information
-                struct sockaddr source_addr;
+                char buffer[1024];
+                struct sockaddr_in source_addr;
                 socklen_t socket_size = ptrace(PTRACE_PEEKDATA, child_pid, regs.r9);
                 for (long unsigned int i = 0; i < socket_size; i+=1) {
-                    *((char *)(&dest_addr)+i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
+                    *((char *)(&source_addr)+i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
                 }
 
                 // Print out port and address of destination address
@@ -145,20 +146,21 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "sin_addr %s\n", inet_ntoa(source_addr.sin_addr));
 
                 // Make child process not recvfrom
+                socklen_t len;
                 regs.orig_rax = SYS_getpid;
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-                recvfrom(sockfd_send, buffer, 1024, 0, (const struct sockaddr *) &source_addr, sizeof(source_addr));
+                recvfrom(sockfd_send, buffer, 1024, 0, (struct sockaddr *) &source_addr, &len);
 
+                // Deserialize the message
                 CarrotMessage deserialized_message;
                 string serialized_data = buffer;
                 deserialized_message.ParseFromString(serialized_data);
-                char* message_ptr = deserialized_message.c_str();
-                
-                for (int i = 0; i < deserialized_message.length(); i+=1) {
-                    ptrace(PTRACE_POKEDATA, child_pid, regs.rsi + i, message_ptr + i);
-                }
+
+                // Print out the message
+                cout << "Message: " << deserialized_message.message() << endl;
+                cout << "From IP Address: " << deserialized_message.ip_address() << endl;
             }
-            fprintf(stderr, "system call number %ld name %s from pid %d\n", syscall_num, callname(syscall_num), child_pid);
+            // fprintf(stderr, "system call number %ld name %s from pid %d\n", syscall_num, callname(syscall_num), child_pid);
         }
     }
     return 0;

@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define PORT 12345 // Change the port number here
+#define PORT 12346 // Change the port number here
 #define MAX_BUFFER_SIZE 1024
 
 int main() {
