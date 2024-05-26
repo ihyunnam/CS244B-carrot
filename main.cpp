@@ -104,14 +104,9 @@ int main(int argc, char *argv[])
             // Check if the call is a sendto
             if (syscall_num == SYS_sendto)
             {
-
-                // Read in and check buffer
-                // string buf;
                 char buffer[1024];
-                size_t buffer_size = ptrace(PTRACE_PEEKDATA, child_pid, regs.rdx);
-                for (size_t i = 0; i < buffer_size; i += 1)
+                for (int i = 0; i < 1024; i += 1)
                 {
-                    // buffer += ptrace(PTRACE_PEEKDATA, child_pid, regs.rsi + i, 0);
                     buffer[i] = ptrace(PTRACE_PEEKDATA, child_pid, regs.rsi + i, 0);
                     if (buffer[i] == '\0')
                     {
@@ -122,8 +117,7 @@ int main(int argc, char *argv[])
 
                 // Read in and check destination address information
                 struct sockaddr_in dest_addr;
-                socklen_t socket_size = ptrace(PTRACE_PEEKDATA, child_pid, regs.r9);
-                for (long unsigned int i = 0; i < socket_size; i += 1)
+                for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += 1)
                 {
                     *((char *)(&dest_addr) + i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
                 }
@@ -161,8 +155,8 @@ int main(int argc, char *argv[])
                 }
 
                 // Print out port and address of destination address
-                fprintf(stderr, "Destination sin_port %d\n", ntohs(source_addr.sin_port));
-                fprintf(stderr, "Destination sin_addr %s\n", inet_ntoa(source_addr.sin_addr));
+                // fprintf(stderr, "Destination sin_port %d\n", ntohs(source_addr.sin_port));
+                // fprintf(stderr, "Destination sin_addr %s\n", inet_ntoa(source_addr.sin_addr));
 
                 // Make child process not recvfrom
                 socklen_t len;
