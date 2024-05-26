@@ -87,7 +87,7 @@ void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_se
  */
 void interpose_receive(pid_t child_pid, struct user_regs_struct regs, int sockfd_send)
 {
-    // Read in and check destination address information
+    // Get the source address to read in from recvfrom
     fprintf(stderr, "Receiving Message\n\n");
     struct sockaddr_in source_addr;
     for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += 1)
@@ -95,14 +95,14 @@ void interpose_receive(pid_t child_pid, struct user_regs_struct regs, int sockfd
         *((char *)(&source_addr) + i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
     }
 
-    // Print out port and address of destination address
-    fprintf(stderr, "Source Address: %s\n", inet_ntoa(source_addr.sin_addr));
-    fprintf(stderr, "Source Port: %d\n", ntohs(source_addr.sin_port));
-
     // Receive process as the image
     char buffer[1024];
     socklen_t len;
     recvfrom(sockfd_send, buffer, 1024, 0, (struct sockaddr *)&source_addr, &len);
+
+    // Print out port and address of destination address
+    fprintf(stderr, "Source Address: %s\n", inet_ntoa(source_addr.sin_addr));
+    fprintf(stderr, "Source Port: %d\n", ntohs(source_addr.sin_port));
 
     // Deserialize the message
     CarrotMessage deserialized_message;
