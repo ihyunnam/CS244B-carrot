@@ -30,9 +30,10 @@ const char *ip_addresses[NUM_INTERMEDIARIES] = {
 /*
  * Interpose a sendto sys call
  */
-void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_send)
+void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_send, bool is_intermediary)
 {
     // Retrieve buffer
+    fprintf(stderr, "Sending Message\n\n");
     char buffer[1024];
     for (int i = 0; i < 1024; i += 1)
     {
@@ -42,10 +43,11 @@ void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_se
             break;
         }
     }
-    fprintf(stderr, "Buffer: %s\n", buffer);
+    fprintf(stderr, "Message: %s\n", buffer);
 
     // Read in and check destination address information
     struct sockaddr_in dest_addr;
+    dest_addr.sin_family = AF_INET;
     for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += 1)
     {
         *((char *)(&dest_addr) + i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
@@ -53,11 +55,7 @@ void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_se
 
     // Print out port and address of destination address
     fprintf(stderr, "Destination Port: %d\n", ntohs(dest_addr.sin_port));
-    fprintf(stderr, "Destination Address: %s\n", inet_ntoa(dest_addr.sin_addr));
-
-    // Make child process not sendto
-    regs.orig_rax = SYS_getpid;
-    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+    fprintf(stderr, "Destination Address: %s\n\n", inet_ntoa(dest_addr.sin_addr));
 
     // Create a message
     CarrotMessage message;
@@ -69,8 +67,19 @@ void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_se
     string serialized_data;
     message.SerializeToString(&serialized_data);
 
+    // Make child process not sendto
+    regs.orig_rax = SYS_getpid;
+    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+
     // Also send to client
-    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+    if (is_intermediary)
+    {
+        sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+    }
+    else
+    {
+        sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+    }
 }
 
 /*
@@ -79,7 +88,7 @@ void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_se
 void interpose_receive(pid_t child_pid, struct user_regs_struct regs, int sockfd_send)
 {
     // Read in and check destination address information
-    char buffer[1024];
+    fprintf(stderr, "Receiving Message\n\n");
     struct sockaddr_in source_addr;
     for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += 1)
     {
@@ -90,7 +99,8 @@ void interpose_receive(pid_t child_pid, struct user_regs_struct regs, int sockfd
     fprintf(stderr, "Source Address: %s\n", inet_ntoa(source_addr.sin_addr));
     fprintf(stderr, "Source Port: %d\n", ntohs(source_addr.sin_port));
 
-    // Make child process not recvfrom
+    // Receive process as the image
+    char buffer[1024];
     socklen_t len;
     recvfrom(sockfd_send, buffer, 1024, 0, (struct sockaddr *)&source_addr, &len);
 
@@ -109,11 +119,19 @@ void interpose_receive(pid_t child_pid, struct user_regs_struct regs, int sockfd
         ptrace(PTRACE_POKEDATA, child_pid, regs.rsi + i, data);
     }
 
+    // Set up destination info
+    struct sockaddr_in dest_addr;
+    dest_addr.sin_family = AF_INET;
+
+    // Get destination information from the deserialized string
+    dest_addr.sin_port = htons(deserialized_message.port());
+    inet_pton(AF_INET, deserialized_message.ip_address().c_str(), &dest_addr.sin_addr);
+
     // Send source information back
     for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += sizeof(long))
     {
         long data;
-        memcpy(&data, ((char *)(&source_addr)) + i, sizeof(long));
+        memcpy(&data, ((char *)(&dest_addr)) + i, sizeof(long));
         ptrace(PTRACE_POKEDATA, child_pid, regs.r8 + i, data);
     }
 
@@ -125,6 +143,7 @@ void interpose_receive(pid_t child_pid, struct user_regs_struct regs, int sockfd
 int main(int argc, char *argv[])
 {
     // Defining intermediaries
+    bool is_intermediary = false;
     for (int i = 0; i < NUM_INTERMEDIARIES; ++i)
     {
         intermediaries[i].sin_family = AF_INET;
@@ -164,9 +183,15 @@ int main(int argc, char *argv[])
     }
     char *chargs[argc];
     int i = 0;
+
+    // Also check if intermediary
     while (i < argc - 1)
     {
         chargs[i] = argv[i + 1];
+        if (strcmp(chargs[i], "./intermediary") == 0)
+        {
+            is_intermediary = true;
+        }
         i++;
     }
 
@@ -215,9 +240,10 @@ int main(int argc, char *argv[])
             // If on sendto or receive, interpose
             if (syscall_num == SYS_sendto)
             {
-                interpose_send(child_pid, regs, sockfd_send);
+                // fprintf("Cool");
+                interpose_send(child_pid, regs, sockfd_send, is_intermediary);
             }
-            else if (syscall_num == SYS_recvfrom)
+            if (syscall_num == SYS_recvfrom)
             {
                 interpose_receive(child_pid, regs, sockfd_send);
             }

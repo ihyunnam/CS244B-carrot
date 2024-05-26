@@ -58,28 +58,26 @@ int main()
         return -1;
     }
 
-    // Specify the destination address (IP address and port)
+    // General destination address
     struct sockaddr_in dest_addr;
     dest_addr.sin_family = AF_INET;
-    dest_addr.sin_port = htons(PORT);                        // Destination port
-    inet_pton(AF_INET, "171.64.15.22", &dest_addr.sin_addr); // Destination IP address (Myth 61)
-    // TODO: change IP later (myth 65 for now)
+    dest_addr.sin_port = htons(PORT2);
 
     int n;
     socklen_t len;
+    len = sizeof(cliaddr_receive);
 
     while (true)
     {
         // Get message from standard input
         n = recvfrom(sockfd_receive, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr *>(&cliaddr_receive), &len);
         buffer[n] = '\0';
-        cout << "Received message: " << buffer << endl;
-        // Print out port and address of destination address
-        fprintf(stderr, "sin_port %d\n", ntohs(cliaddr_receive.sin_port));
-        fprintf(stderr, "sin_addr %s\n", inet_ntoa(cliaddr_receive.sin_addr));
+        cout << "Buffer: " << buffer << endl;
 
-        // Sending data to the specific IP address
-        // sendto(sockfd_send, buffer, strnlen(buffer, MAX_BUFFER_SIZE), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+        // Intermediate: just send the damn data
+        dest_addr.sin_port = htons(ntohs(cliaddr_receive.sin_port));                  // Destination port
+        inet_pton(AF_INET, inet_ntoa(cliaddr_receive.sin_addr), &dest_addr.sin_addr); // Destination IP address (Myth 61)
+        sendto(sockfd_send, buffer, strnlen(buffer, MAX_BUFFER_SIZE), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
     }
 
     return 0;

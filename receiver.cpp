@@ -45,11 +45,7 @@ int main()
     {
         n = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
         buffer[n] = '\0';
-
-        // Print out port and address of destination address
-        fprintf(stderr, "sin_port %d\n", ntohs(cliaddr.sin_port));
-        fprintf(stderr, "sin_addr %s\n", inet_ntoa(cliaddr.sin_addr));
-        std::cout << "Received message from client: " << buffer << std::endl;
+        fprintf(stderr, "Received message from client: %s\n", buffer);
     }
 
     return 0;
