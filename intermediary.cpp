@@ -4,25 +4,28 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#define PORT 12345
+#define PORT 12348
 #define PORT2 12346
 #define MAX_BUFFER_SIZE 1024
 
 using namespace std;
 
-int main() {
+int main()
+{
     // Initial variables
     int sockfd_send, sockfd_receive;
     char buffer[MAX_BUFFER_SIZE];
     struct sockaddr_in servaddr_send, servaddr_receive, cliaddr_receive;
 
     // Creating socket file descriptors
-    if ((sockfd_send = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((sockfd_send = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    {
         cerr << "Socket creation failed" << endl;
         return -1;
     }
 
-    if ((sockfd_receive = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((sockfd_receive = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    {
         cerr << "Socket creation failed" << endl;
         return -1;
     }
@@ -38,7 +41,8 @@ int main() {
     servaddr_send.sin_port = htons(PORT);
 
     // Bind the socket with the server address
-    if (bind(sockfd_send, (const struct sockaddr *)&servaddr_send, sizeof(servaddr_send)) < 0) {
+    if (bind(sockfd_send, (const struct sockaddr *)&servaddr_send, sizeof(servaddr_send)) < 0)
+    {
         cerr << "Binding failed 1" << endl;
         return -1;
     }
@@ -48,7 +52,8 @@ int main() {
     servaddr_receive.sin_port = htons(PORT2);
 
     // Bind the socket with the server address
-    if (bind(sockfd_receive, (const struct sockaddr *)&servaddr_receive, sizeof(servaddr_receive)) < 0) {
+    if (bind(sockfd_receive, (const struct sockaddr *)&servaddr_receive, sizeof(servaddr_receive)) < 0)
+    {
         cerr << "Binding failed 2" << endl;
         return -1;
     }
@@ -56,21 +61,25 @@ int main() {
     // Specify the destination address (IP address and port)
     struct sockaddr_in dest_addr;
     dest_addr.sin_family = AF_INET;
-    dest_addr.sin_port = htons(PORT); // Destination port
+    dest_addr.sin_port = htons(PORT);                        // Destination port
     inet_pton(AF_INET, "171.64.15.22", &dest_addr.sin_addr); // Destination IP address (Myth 61)
     // TODO: change IP later (myth 65 for now)
 
     int n;
     socklen_t len;
 
-    while (true) {
+    while (true)
+    {
         // Get message from standard input
-        n = recvfrom(sockfd_receive, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr*>(&cliaddr_receive), &len);
+        n = recvfrom(sockfd_receive, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr *>(&cliaddr_receive), &len);
         buffer[n] = '\0';
         cout << "Received message: " << buffer << endl;
+        // Print out port and address of destination address
+        fprintf(stderr, "sin_port %d\n", ntohs(cliaddr_receive.sin_port));
+        fprintf(stderr, "sin_addr %s\n", inet_ntoa(cliaddr_receive.sin_addr));
 
         // Sending data to the specific IP address
-        sendto(sockfd_send, buffer, strnlen(buffer, MAX_BUFFER_SIZE), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+        // sendto(sockfd_send, buffer, strnlen(buffer, MAX_BUFFER_SIZE), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
     }
 
     return 0;

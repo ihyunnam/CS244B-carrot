@@ -4,8 +4,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+// Define destination here
 #define SOURCE_PORT 12346
 #define DEST_PORT 12345
+#define DEST_IP "34.41.143.79"
 #define MAX_BUFFER_SIZE 1024
 
 using namespace std;
@@ -43,8 +45,8 @@ int main()
     // Specify the destination address (IP address and port)
     struct sockaddr_in dest_addr;
     dest_addr.sin_family = AF_INET;
-    dest_addr.sin_port = htons(DEST_PORT);                   // Destination port
-    inet_pton(AF_INET, "34.132.138.246", &dest_addr.sin_addr); // Destination IP address
+    dest_addr.sin_port = htons(DEST_PORT);            // Destination port
+    inet_pton(AF_INET, DEST_IP, &dest_addr.sin_addr); // Destination IP address
 
     while (true)
     {

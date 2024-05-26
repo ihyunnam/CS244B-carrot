@@ -5,11 +5,8 @@
 #include <unistd.h>
 #include <sys/user.h>
 #include "sysnames.h"
-
 #include <sys/syscall.h>
-
 #include <unistd.h>
-
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -20,8 +17,15 @@
 #include "protobufs/messages/message.pb.h"
 #include "protobufs/messages/message.pb.cc"
 
+// Default constants for tracer
 #define PORT 12345
+#define NUM_INTERMEDIARIES 1
 using namespace std;
+
+// Defining intermediaries
+struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
+const char *ip_addresses[NUM_INTERMEDIARIES] = {
+    "34.132.138.246"};
 
 /*
  * Interpose a sendto sys call
@@ -48,7 +52,7 @@ void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_se
     }
 
     // Print out port and address of destination address
-    fprintf(stderr, "Destionation Port: %d\n", ntohs(dest_addr.sin_port));
+    fprintf(stderr, "Destination Port: %d\n", ntohs(dest_addr.sin_port));
     fprintf(stderr, "Destination Address: %s\n", inet_ntoa(dest_addr.sin_addr));
 
     // Make child process not sendto
@@ -66,7 +70,7 @@ void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_se
     message.SerializeToString(&serialized_data);
 
     // Also send to client
-    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
 }
 
 /*
@@ -77,15 +81,14 @@ void interpose_receive(pid_t child_pid, struct user_regs_struct regs, int sockfd
     // Read in and check destination address information
     char buffer[1024];
     struct sockaddr_in source_addr;
-    socklen_t socket_size = ptrace(PTRACE_PEEKDATA, child_pid, regs.r9);
-    for (long unsigned int i = 0; i < socket_size; i += 1)
+    for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += 1)
     {
         *((char *)(&source_addr) + i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
     }
 
     // Print out port and address of destination address
-    fprintf(stderr, "Destination Port: %d\n", ntohs(source_addr.sin_port));
-    fprintf(stderr, "Destination Address: %s\n", inet_ntoa(source_addr.sin_addr));
+    fprintf(stderr, "Source Address: %s\n", inet_ntoa(source_addr.sin_addr));
+    fprintf(stderr, "Source Port: %d\n", ntohs(source_addr.sin_port));
 
     // Make child process not recvfrom
     socklen_t len;
@@ -107,7 +110,7 @@ void interpose_receive(pid_t child_pid, struct user_regs_struct regs, int sockfd
     }
 
     // Send source information back
-    for (long unsigned int i = 0; i < socket_size; i += sizeof(long))
+    for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += sizeof(long))
     {
         long data;
         memcpy(&data, ((char *)(&source_addr)) + i, sizeof(long));
@@ -121,6 +124,18 @@ void interpose_receive(pid_t child_pid, struct user_regs_struct regs, int sockfd
 
 int main(int argc, char *argv[])
 {
+    // Defining intermediaries
+    for (int i = 0; i < NUM_INTERMEDIARIES; ++i)
+    {
+        intermediaries[i].sin_family = AF_INET;
+        intermediaries[i].sin_port = htons(PORT);
+        if (inet_pton(AF_INET, ip_addresses[i], &intermediaries[i].sin_addr) <= 0)
+        {
+            cerr << "Invalid address: " << ip_addresses[i] << endl;
+            return -1;
+        }
+    }
+
     // Create a socket to send out information
     int sockfd_send;
     struct sockaddr_in servaddr_send;
