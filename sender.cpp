@@ -44,7 +44,7 @@ int main()
     struct sockaddr_in dest_addr;
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(DEST_PORT);                   // Destination port
-    inet_pton(AF_INET, "34.27.33.252", &dest_addr.sin_addr); // Destination IP address
+    inet_pton(AF_INET, "34.132.138.246", &dest_addr.sin_addr); // Destination IP address
 
     while (true)
     {
