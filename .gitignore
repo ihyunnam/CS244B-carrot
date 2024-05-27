@@ -8,3 +8,6 @@ protobufs/protobuf
 
 # Sample data for testing
 data/
+
+# Misellany
+.vscode/

@@ -6,20 +6,25 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-
-// #include <sys/types.h>
-// #include <sys/socket.h>
-// #include <netinet/in.h>
-// #include <arpa/inet.h>
-// #include <unistd.h>
+#include <chrono>
 
 // Define destination here
 #define SOURCE_PORT 12346
-#define DEST_PORT 12346
+#define DEST_PORT 12345 // Change to 12346 if sending directly, without ./main
 #define DEST_IP "34.41.143.79"
 #define MAX_BUFFER_SIZE 1024
 
 using namespace std;
+
+/*
+ * Helper utility to keep track of time
+ */
+void print_time()
+{
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::cout << std::ctime(&now_c);
+}
 
 /*
  * Take in text from standard input.
@@ -49,7 +54,7 @@ int file_send(int sockfd, struct sockaddr_in dest_addr)
     ifstream file("data/sample.txt", ios::binary);
     if (!file.is_open())
     {
-        std::cerr << "Failed to open the file" << std::endl;
+        cerr << "Failed to open the file" << endl;
         close(sockfd);
         return 1;
     }
@@ -84,7 +89,6 @@ int main()
 {
     // Initial variables
     int sockfd;
-    // char buffer[MAX_BUFFER_SIZE];
     struct sockaddr_in servaddr, cliaddr;
 
     // Creating socket file descriptor
@@ -117,19 +121,10 @@ int main()
     inet_pton(AF_INET, DEST_IP, &dest_addr.sin_addr); // Destination IP address
 
     // Either continuously send or send a file
-    // continuous_send(buffer, dest_addr, sockfd);
+    // continuous_send(dest_addr, sockfd);
+    print_time();
     file_send(sockfd, dest_addr);
-
-    // while (true)
-    // {
-    //     // Get message from standard input
-    //     cout << "Enter message: ";
-    //     cin.getline(buffer, MAX_BUFFER_SIZE);
-
-    //     // Sending data to the specific IP address
-    //     printf("buffer address: %llx dest_addr %llx \n", (long long int)buffer, (long long int)&dest_addr);
-    //     sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
-    // }
+    print_time();
 
     return 0;
 }
