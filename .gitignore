@@ -5,3 +5,6 @@ sender
 intermediary
 main
 protobufs/protobuf
+
+# Sample data for testing
+data/

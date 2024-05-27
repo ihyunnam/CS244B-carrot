@@ -1,22 +1,90 @@
 #include <iostream>
+#include <fstream>
 #include <cstring>
 #include <arpa/inet.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
+
+// #include <sys/types.h>
+// #include <sys/socket.h>
+// #include <netinet/in.h>
+// #include <arpa/inet.h>
+// #include <unistd.h>
 
 // Define destination here
 #define SOURCE_PORT 12346
-#define DEST_PORT 12345
+#define DEST_PORT 12346
 #define DEST_IP "34.41.143.79"
 #define MAX_BUFFER_SIZE 1024
 
 using namespace std;
 
+/*
+ * Take in text from standard input.
+ */
+void continuous_send(struct sockaddr_in dest_addr, int sockfd)
+{
+    // Have a storable buffer
+    char buffer[MAX_BUFFER_SIZE];
+    while (true)
+    {
+        // Get message from standard input
+        cout << "Enter message: ";
+        cin.getline(buffer, MAX_BUFFER_SIZE);
+
+        // Sending data to the specific IP address
+        printf("buffer address: %llx dest_addr %llx \n", (long long int)buffer, (long long int)&dest_addr);
+        sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+    }
+}
+
+/*
+ * Instead of taking from c-input, try taking in a file
+ */
+int file_send(int sockfd, struct sockaddr_in dest_addr)
+{
+    // Open the file to be sent
+    ifstream file("data/sample.txt", ios::binary);
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open the file" << std::endl;
+        close(sockfd);
+        return 1;
+    }
+
+    char buffer[MAX_BUFFER_SIZE];
+    while (!file.eof())
+    {
+        file.read(buffer, MAX_BUFFER_SIZE);
+        streamsize bytes_read = file.gcount();
+
+        if (bytes_read > 0)
+        {
+            ssize_t bytes_sent = sendto(sockfd, buffer, bytes_read, 0,
+                                        (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+            if (bytes_sent < 0)
+            {
+                perror("Failed to send data");
+                file.close();
+                close(sockfd);
+                return 1;
+            }
+        }
+    }
+
+    // Close the file and the socket
+    file.close();
+    close(sockfd);
+    return 0;
+}
+
 int main()
 {
     // Initial variables
     int sockfd;
-    char buffer[MAX_BUFFER_SIZE];
+    // char buffer[MAX_BUFFER_SIZE];
     struct sockaddr_in servaddr, cliaddr;
 
     // Creating socket file descriptor
@@ -48,16 +116,20 @@ int main()
     dest_addr.sin_port = htons(DEST_PORT);            // Destination port
     inet_pton(AF_INET, DEST_IP, &dest_addr.sin_addr); // Destination IP address
 
-    while (true)
-    {
-        // Get message from standard input
-        cout << "Enter message: ";
-        cin.getline(buffer, MAX_BUFFER_SIZE);
+    // Either continuously send or send a file
+    // continuous_send(buffer, dest_addr, sockfd);
+    file_send(sockfd, dest_addr);
 
-        // Sending data to the specific IP address
-        printf("buffer address: %llx dest_addr %llx \n", (long long int)buffer, (long long int)&dest_addr);
-        sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
-    }
+    // while (true)
+    // {
+    //     // Get message from standard input
+    //     cout << "Enter message: ";
+    //     cin.getline(buffer, MAX_BUFFER_SIZE);
+
+    //     // Sending data to the specific IP address
+    //     printf("buffer address: %llx dest_addr %llx \n", (long long int)buffer, (long long int)&dest_addr);
+    //     sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+    // }
 
     return 0;
 }
