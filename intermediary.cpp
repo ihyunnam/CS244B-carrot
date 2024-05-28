@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <random>
 
 // Code for protobufs
 #include "protobufs/messages/message.pb.h"
@@ -10,11 +11,47 @@
 
 #define PORT 12345
 #define PORT2 12346
+#define PORT_inter2 12347
 #define MAX_BUFFER_SIZE 1024
 
 using namespace std;
 
+std::map<std::string, double> routing_table;
+std::random_device rd;  // Obtain a random number from hardware
+std::mt19937 gen(rd()); // Seed the generator
+std::uniform_real_distribution<> dis(0.0, 1.0); // Define the range
+
+// Communicate to the next intermediary whether it should send to destination or not
+bool last = false;
+
+// Emulate the process of finding the next hop with a routing table.
+// Numbers represent proximity to the destination IP.
+// Only the intermediary with distance less than 0.3 can send directly to the final destination.
+void reset_routing_table() {
+    // Intermediary 1 (Daniel, Myth 61?)
+    routing_table["34.134.231.12"] = dis(gen);
+    // Intermediary 2 (Ihyun1, Myth 66)
+    routing_table["104.154.255.113"] = dis(gen);
+    // Intermediary 3 (Ihyun2)
+    routing_table["34.31.215.63"] = dis(gen);
+}
+
+// TODO: Can intermediary send to itself? If not remove IP of itself from routing table.
+
 int main() {
+    reset_routing_table();
+    std::string min_key;
+    double min_value = std::numeric_limits<double>::max();
+    
+    for (const auto& pair : routing_table) {
+        if (pair.second < min_value) {
+            min_key = pair.first;
+            min_value = pair.second;
+        }
+    }
+    if (min_value < 0.3) {
+        last = true;
+    }
     // Initial variables
     int sockfd_send, sockfd_receive;
     char buffer[MAX_BUFFER_SIZE];
@@ -62,9 +99,11 @@ int main() {
     struct sockaddr_in dest_addr;
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(PORT); // Destination port
-    inet_pton(AF_INET, "171.64.15.22", &dest_addr.sin_addr); // Destination IP address (Myth 61)
-    // TODO: change IP later (myth 65 for now)
-
+    if (!last)
+        // Send to next intermediary
+        inet_pton(AF_INET, min_key, &dest_addr.sin_addr); // Destination IP address (Myth 61)
+    }
+    
     int n;
     socklen_t len;
     len = sizeof(cliaddr_receive);  // len is value/result
@@ -81,7 +120,9 @@ int main() {
         string dest_ip = deserialized_message.ip_address();
         int dest_port = deserialized_message.port();
         string message = deserialized_message.message();
+        bool last = deserialized_message.last();
 
+        // Send to destination IP
         dest_addr.sin_port = htons(dest_port);
         inet_pton(AF_INET, dest_ip.c_str(), &dest_addr.sin_addr);
 
@@ -90,6 +131,5 @@ int main() {
         // Sending data to the specific IP address
         sendto(sockfd_send, message.c_str(), message.length(), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
     }
-
     return 0;
 }
