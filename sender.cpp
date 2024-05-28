@@ -15,6 +15,7 @@
 #define MAX_BUFFER_SIZE 1024
 
 using namespace std;
+using namespace std::chrono;
 
 /*
  * Helper utility to keep track of time
@@ -24,6 +25,14 @@ void print_time()
     auto now = std::chrono::system_clock::now();
     std::time_t now_c = std::chrono::system_clock::to_time_t(now);
     std::cout << std::ctime(&now_c);
+}
+
+/*
+ * Helper utility to get the current time
+ */
+system_clock::time_point get_current_time()
+{
+    return std::chrono::system_clock::now();
 }
 
 /*
@@ -120,11 +129,15 @@ int main()
     dest_addr.sin_port = htons(DEST_PORT);            // Destination port
     inet_pton(AF_INET, DEST_IP, &dest_addr.sin_addr); // Destination IP address
 
-    // Either continuously send or send a file
+    // Capture the start time and send file
     // continuous_send(dest_addr, sockfd);
-    print_time();
+    auto start_time = get_current_time();
     file_send(sockfd, dest_addr);
-    print_time();
+
+    // Capture the end time and difference
+    auto end_time = get_current_time();
+    duration<double> time_diff = end_time - start_time;
+    cout << "Time difference: " << time_diff.count() << " seconds" << endl;
 
     return 0;
 }

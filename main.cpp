@@ -26,6 +26,7 @@ using namespace std;
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     "34.132.138.246"};
+// "34.41.143.79"};
 
 /*
  * Interpose a sendto sys call
@@ -33,7 +34,7 @@ const char *ip_addresses[NUM_INTERMEDIARIES] = {
 void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_send, bool is_intermediary)
 {
     // Retrieve buffer
-    fprintf(stderr, "Sending Message\n\n");
+    // fprintf(stderr, "Sending Message\n\n");
     char buffer[1024];
     for (int i = 0; i < 1024; i += 1)
     {
@@ -43,7 +44,7 @@ void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_se
             break;
         }
     }
-    fprintf(stderr, "Message: %s\n", buffer);
+    // fprintf(stderr, "Message: %s\n", buffer);
 
     // Read in and check destination address information
     struct sockaddr_in dest_addr;
@@ -54,8 +55,8 @@ void interpose_send(pid_t child_pid, struct user_regs_struct regs, int sockfd_se
     }
 
     // Print out port and address of destination address
-    fprintf(stderr, "Destination Port: %d\n", ntohs(dest_addr.sin_port));
-    fprintf(stderr, "Destination Address: %s\n\n", inet_ntoa(dest_addr.sin_addr));
+    // fprintf(stderr, "Destination Port: %d\n", ntohs(dest_addr.sin_port));
+    // fprintf(stderr, "Destination Address: %s\n\n", inet_ntoa(dest_addr.sin_addr));
 
     // Create a message
     CarrotMessage message;
