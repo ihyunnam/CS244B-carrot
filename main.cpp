@@ -29,6 +29,18 @@ struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     "34.41.143.79"};
 
+bool isBufferNonEmpty(const char buffer[])
+{
+    for (size_t i = 0; buffer[i] != '\0'; ++i)
+    {
+        if (!std::isspace(buffer[i]))
+        {
+            return true; // Found a non-whitespace character
+        }
+    }
+    return false; // All characters are whitespace
+}
+
 int main(int argc, char *argv[])
 {
     // Set up intermediaries
@@ -129,38 +141,42 @@ int main(int argc, char *argv[])
                     buffer[i] = ptrace(PTRACE_PEEKDATA, child_pid, regs.rsi + i, 0);
                     if (buffer[i] == '\0')
                     {
+                        cout << i << endl;
                         break;
                     }
                 }
                 fprintf(stderr, "buffer %s\n", buffer);
 
                 // Read in and check destination address information
-                struct sockaddr_in dest_addr;
-                for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += 1)
+                if (isBufferNonEmpty(buffer) and strlen(buffer) > 10)
                 {
-                    *((char *)(&dest_addr) + i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
+                    struct sockaddr_in dest_addr;
+                    for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += 1)
+                    {
+                        *((char *)(&dest_addr) + i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
+                    }
+
+                    // Print out port and address of destination address
+                    fprintf(stderr, "sin_port %d\n", ntohs(dest_addr.sin_port));
+                    fprintf(stderr, "sin_addr %s\n", inet_ntoa(dest_addr.sin_addr));
+
+                    // Create a message
+                    CarrotMessage message;
+                    message.set_message(buffer);
+                    message.set_port(ntohs(dest_addr.sin_port));
+                    message.set_ip_address(inet_ntoa(dest_addr.sin_addr));
+
+                    // Serialize the message
+                    string serialized_data;
+                    message.SerializeToString(&serialized_data);
+
+                    // Send message
+                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+
+                    // // Make child process not sendto (not working)
+                    regs.orig_rax = SYS_getpid;
+                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                 }
-
-                // Print out port and address of destination address
-                fprintf(stderr, "sin_port %d\n", ntohs(dest_addr.sin_port));
-                fprintf(stderr, "sin_addr %s\n", inet_ntoa(dest_addr.sin_addr));
-
-                // Create a message
-                CarrotMessage message;
-                message.set_message(buffer);
-                message.set_port(ntohs(dest_addr.sin_port));
-                message.set_ip_address(inet_ntoa(dest_addr.sin_addr));
-
-                // Serialize the message
-                string serialized_data;
-                message.SerializeToString(&serialized_data);
-
-                // Send message
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
-
-                // // Make child process not sendto (not working)
-                regs.orig_rax = SYS_getpid;
-                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
             outfile << "system call number " << syscall_num
