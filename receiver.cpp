@@ -64,10 +64,11 @@ int main() {
         dest_addr.sin_port = htons(deserialized_message.port());
         inet_pton(AF_INET, deserialized_message.ip_address().c_str(), &dest_addr.sin_addr);
 
-        // Perform same sendto
-        // sendto()
+        // Perform same sendto and receive
+        sendto(sockfd, deserialized_message.message().c_str(), deserialized_message.message().length(), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
         n = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr*>(&cliaddr), &len);
         buffer[n] = '\0';
+        cout << "Buffer: " << buffer << endl;
     }
 
     return 0;
