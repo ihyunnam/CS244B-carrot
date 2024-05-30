@@ -11,8 +11,9 @@ def fetch_html(url):
         return None
 
 if __name__ == "__main__":
-    url = "https://www.nba.com"
+    url = "https://www.google.com"
     html_content = fetch_html(url)
-    if html_content:
-        print("Carrot tickle")
+    print(html_content)
+    # if html_content:
+        # print("Carrot tickle")
         # print(html_content)
