@@ -66,11 +66,6 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Failed to fork");
         return 1;
     } else if (child_pid == 0) {
-        // ptrace(PTRACE_TRACEME, 0, nullptr, nullptr);
-        // execl("/usr/bin/python3", "python3", "get_website.py", nullptr);
-        // // If execl fails
-        // perror("execl");
-        // return 1;
         // Child process
         ptrace(PTRACE_TRACEME, 0, nullptr, nullptr);
         execvp(chargs[0], chargs);
