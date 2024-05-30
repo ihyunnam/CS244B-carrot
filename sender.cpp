@@ -49,7 +49,8 @@ int main() {
 
         // Sending data to the specific IP address
         printf("buffer address: %llx dest_addr %llx \n", (long long int) buffer, (long long int) &dest_addr);
-        sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+        int out = sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+        printf("output %d", out);
     }
 
     return 0;
