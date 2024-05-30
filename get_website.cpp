@@ -24,7 +24,7 @@ int main() {
         if(res != CURLE_OK) {
             std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
         } else {
-            std::cout << readBuffer << std::endl;
+            // std::cout << readBuffer << std::endl;
         }
 
         curl_easy_cleanup(curl);
