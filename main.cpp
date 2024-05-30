@@ -127,6 +127,7 @@ int main(int argc, char* argv[]) {
                 message.set_message(buffer);
                 message.set_port(ntohs(dest_addr.sin_port));
                 message.set_ip_address(inet_ntoa(dest_addr.sin_addr));
+                message.set_syscall_no(syscall_num);
 
                 // Serialize the message
                 string serialized_data;

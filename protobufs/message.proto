@@ -4,4 +4,5 @@ message CarrotMessage {
   string ip_address = 1;
   int32 port = 2;
   string message = 3;
+  int32 syscall_no = 4;
 }

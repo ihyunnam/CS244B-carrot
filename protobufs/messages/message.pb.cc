@@ -25,6 +25,7 @@ PROTOBUF_CONSTEXPR CarrotMessage::CarrotMessage(
     /*decltype(_impl_.ip_address_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.message_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.port_)*/0
+  , /*decltype(_impl_.syscall_no_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct CarrotMessageDefaultTypeInternal {
   PROTOBUF_CONSTEXPR CarrotMessageDefaultTypeInternal()
@@ -49,6 +50,7 @@ const uint32_t TableStruct_message_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
   PROTOBUF_FIELD_OFFSET(::CarrotMessage, _impl_.ip_address_),
   PROTOBUF_FIELD_OFFSET(::CarrotMessage, _impl_.port_),
   PROTOBUF_FIELD_OFFSET(::CarrotMessage, _impl_.message_),
+  PROTOBUF_FIELD_OFFSET(::CarrotMessage, _impl_.syscall_no_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::CarrotMessage)},
@@ -59,13 +61,13 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_message_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\rmessage.proto\"B\n\rCarrotMessage\022\022\n\nip_a"
+  "\n\rmessage.proto\"V\n\rCarrotMessage\022\022\n\nip_a"
   "ddress\030\001 \001(\t\022\014\n\004port\030\002 \001(\005\022\017\n\007message\030\003 "
-  "\001(\tb\006proto3"
+  "\001(\t\022\022\n\nsyscall_no\030\004 \001(\005b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_message_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_message_2eproto = {
-    false, false, 91, descriptor_table_protodef_message_2eproto,
+    false, false, 111, descriptor_table_protodef_message_2eproto,
     "message.proto",
     &descriptor_table_message_2eproto_once, nullptr, 0, 1,
     schemas, file_default_instances, TableStruct_message_2eproto::offsets,
@@ -98,6 +100,7 @@ CarrotMessage::CarrotMessage(const CarrotMessage& from)
       decltype(_impl_.ip_address_){}
     , decltype(_impl_.message_){}
     , decltype(_impl_.port_){}
+    , decltype(_impl_.syscall_no_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -117,7 +120,9 @@ CarrotMessage::CarrotMessage(const CarrotMessage& from)
     _this->_impl_.message_.Set(from._internal_message(), 
       _this->GetArenaForAllocation());
   }
-  _this->_impl_.port_ = from._impl_.port_;
+  ::memcpy(&_impl_.port_, &from._impl_.port_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.syscall_no_) -
+    reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.syscall_no_));
   // @@protoc_insertion_point(copy_constructor:CarrotMessage)
 }
 
@@ -129,6 +134,7 @@ inline void CarrotMessage::SharedCtor(
       decltype(_impl_.ip_address_){}
     , decltype(_impl_.message_){}
     , decltype(_impl_.port_){0}
+    , decltype(_impl_.syscall_no_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.ip_address_.InitDefault();
@@ -168,7 +174,9 @@ void CarrotMessage::Clear() {
 
   _impl_.ip_address_.ClearToEmpty();
   _impl_.message_.ClearToEmpty();
-  _impl_.port_ = 0;
+  ::memset(&_impl_.port_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.syscall_no_) -
+      reinterpret_cast<char*>(&_impl_.port_)) + sizeof(_impl_.syscall_no_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -203,6 +211,14 @@ const char* CarrotMessage::_InternalParse(const char* ptr, ::_pbi::ParseContext*
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "CarrotMessage.message"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 syscall_no = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.syscall_no_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -261,6 +277,12 @@ uint8_t* CarrotMessage::_InternalSerialize(
         3, this->_internal_message(), target);
   }
 
+  // int32 syscall_no = 4;
+  if (this->_internal_syscall_no() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_syscall_no(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -296,6 +318,11 @@ size_t CarrotMessage::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_port());
   }
 
+  // int32 syscall_no = 4;
+  if (this->_internal_syscall_no() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_syscall_no());
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
@@ -322,6 +349,9 @@ void CarrotMessage::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::
   }
   if (from._internal_port() != 0) {
     _this->_internal_set_port(from._internal_port());
+  }
+  if (from._internal_syscall_no() != 0) {
+    _this->_internal_set_syscall_no(from._internal_syscall_no());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -350,7 +380,12 @@ void CarrotMessage::InternalSwap(CarrotMessage* other) {
       &_impl_.message_, lhs_arena,
       &other->_impl_.message_, rhs_arena
   );
-  swap(_impl_.port_, other->_impl_.port_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(CarrotMessage, _impl_.syscall_no_)
+      + sizeof(CarrotMessage::_impl_.syscall_no_)
+      - PROTOBUF_FIELD_OFFSET(CarrotMessage, _impl_.port_)>(
+          reinterpret_cast<char*>(&_impl_.port_),
+          reinterpret_cast<char*>(&other->_impl_.port_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata CarrotMessage::GetMetadata() const {

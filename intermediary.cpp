@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "sysnames.h"
 
 // Code for protobufs
 #include "protobufs/messages/message.pb.h"
@@ -81,14 +82,20 @@ int main() {
         string dest_ip = deserialized_message.ip_address();
         int dest_port = deserialized_message.port();
         string message = deserialized_message.message();
+        int syscall_num = deserialized_message.syscall_no();
 
         dest_addr.sin_port = htons(dest_port);
         inet_pton(AF_INET, dest_ip.c_str(), &dest_addr.sin_addr);
 
         cout << "Received message: " << message << endl;
 
-        // Sending data to the specific IP address
-        sendto(sockfd_send, message.c_str(), message.length(), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+        if (syscall_num == SYS_sendto) {
+            // Sending data to the specific IP address
+            sendto(sockfd_send, message.c_str(), message.length(), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+        } else {
+            recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE, 0, (const struct sockaddr *)&dest_addr, &len);
+            sendto(sockfd_send, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr*>(&cliaddr_receive), sizeof(dest_addr))
+        }
     }
 
     return 0;

@@ -177,6 +177,7 @@ class CarrotMessage final :
     kIpAddressFieldNumber = 1,
     kMessageFieldNumber = 3,
     kPortFieldNumber = 2,
+    kSyscallNoFieldNumber = 4,
   };
   // string ip_address = 1;
   void clear_ip_address();
@@ -215,6 +216,15 @@ class CarrotMessage final :
   void _internal_set_port(int32_t value);
   public:
 
+  // int32 syscall_no = 4;
+  void clear_syscall_no();
+  int32_t syscall_no() const;
+  void set_syscall_no(int32_t value);
+  private:
+  int32_t _internal_syscall_no() const;
+  void _internal_set_syscall_no(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:CarrotMessage)
  private:
   class _Internal;
@@ -226,6 +236,7 @@ class CarrotMessage final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr ip_address_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_;
     int32_t port_;
+    int32_t syscall_no_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -360,6 +371,26 @@ inline void CarrotMessage::set_allocated_message(std::string* message) {
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:CarrotMessage.message)
+}
+
+// int32 syscall_no = 4;
+inline void CarrotMessage::clear_syscall_no() {
+  _impl_.syscall_no_ = 0;
+}
+inline int32_t CarrotMessage::_internal_syscall_no() const {
+  return _impl_.syscall_no_;
+}
+inline int32_t CarrotMessage::syscall_no() const {
+  // @@protoc_insertion_point(field_get:CarrotMessage.syscall_no)
+  return _internal_syscall_no();
+}
+inline void CarrotMessage::_internal_set_syscall_no(int32_t value) {
+  
+  _impl_.syscall_no_ = value;
+}
+inline void CarrotMessage::set_syscall_no(int32_t value) {
+  _internal_set_syscall_no(value);
+  // @@protoc_insertion_point(field_set:CarrotMessage.syscall_no)
 }
 
 #ifdef __GNUC__
