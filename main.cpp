@@ -15,6 +15,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <iostream>
+#include <fstream>
 #include <cstring>
 
 // Code for protobufs
@@ -65,12 +66,19 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Failed to fork");
         return 1;
     } else if (child_pid == 0) {
+        // ptrace(PTRACE_TRACEME, 0, nullptr, nullptr);
+        // execl("/usr/bin/python3", "python3", "get_website.py", nullptr);
+        // // If execl fails
+        // perror("execl");
+        // return 1;
         // Child process
         ptrace(PTRACE_TRACEME, 0, nullptr, nullptr);
         execvp(chargs[0], chargs);
     } else {
         // Parent process
         int status;
+        std::ofstream outfile("output.txt");
+
         waitpid(child_pid, &status, 0);
         if (WIFEXITED(status)) {
             printf("Child process exited normally");
@@ -89,9 +97,7 @@ int main(int argc, char* argv[]) {
             ptrace(PTRACE_GETREGS, child_pid, nullptr, &regs);
             long syscall_num = regs.orig_rax;
 
-            // Check if the call is a sendto
             if (syscall_num == SYS_sendto) {
-
                 // Read in and check buffer
                 char buffer[1024];
                 for (int i = 0; i < 1024; i+=1) {
@@ -101,36 +107,56 @@ int main(int argc, char* argv[]) {
                     }
                 }
                 fprintf(stderr, "buffer %s\n", buffer);
-
-                // Read in and check destination address information
-                struct sockaddr_in dest_addr;
-                for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i+=1) {
-                    *((char *)(&dest_addr)+i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
-                }
-
-                // Print out port and address of destination address
-                fprintf(stderr, "sin_port %d\n", ntohs(dest_addr.sin_port));
-                fprintf(stderr, "sin_addr %s\n", inet_ntoa(dest_addr.sin_addr));
-
-                // Make child process not sendto
-                regs.orig_rax = SYS_getpid;
-                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-
-                // Create a message
-                CarrotMessage message;
-                message.set_message(buffer);
-                message.set_port(ntohs(dest_addr.sin_port));
-                message.set_ip_address(inet_ntoa(dest_addr.sin_addr));
-
-                // Serialize the message
-                string serialized_data;
-                message.SerializeToString(&serialized_data);
-
-                // Also send to client
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *) &dest_addr, sizeof(dest_addr));
             }
-            fprintf(stderr, "system call number %ld name %s from pid %d\n", syscall_num, callname(syscall_num), child_pid);
+
+            // Check if the call is a sendto
+            // if (syscall_num == SYS_sendto) {
+
+                // // Read in and check buffer
+                // char buffer[1024];
+                // for (int i = 0; i < 1024; i+=1) {
+                //     buffer[i] = ptrace(PTRACE_PEEKDATA, child_pid, regs.rsi + i, 0);
+                //     if (buffer[i] == '\0') {
+                //         break;
+                //     }
+                // }
+                // fprintf(stderr, "buffer %s\n", buffer);
+
+            //     // Read in and check destination address information
+            //     struct sockaddr_in dest_addr;
+            //     for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i+=1) {
+            //         *((char *)(&dest_addr)+i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
+            //     }
+
+            //     // Print out port and address of destination address
+            //     fprintf(stderr, "sin_port %d\n", ntohs(dest_addr.sin_port));
+            //     fprintf(stderr, "sin_addr %s\n", inet_ntoa(dest_addr.sin_addr));
+
+            //     // Make child process not sendto
+            //     regs.orig_rax = SYS_getpid;
+            //     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+
+            //     // Create a message
+            //     CarrotMessage message;
+            //     message.set_message(buffer);
+            //     message.set_port(ntohs(dest_addr.sin_port));
+            //     message.set_ip_address(inet_ntoa(dest_addr.sin_addr));
+
+            //     // Serialize the message
+            //     string serialized_data;
+            //     message.SerializeToString(&serialized_data);
+
+            //     // Also send to client
+            //     sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *) &dest_addr, sizeof(dest_addr));
+            // }
+            // fprintf(stderr, "system call number %ld name %s from pid %d\n", syscall_num, callname(syscall_num), child_pid);
+
+            outfile << "system call number " << syscall_num
+            << " name " << callname(syscall_num)
+            << " from pid " << child_pid << std::endl;
+
         }
+        outfile.close();
     }
     return 0;
 }
