@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
                 message.SerializeToString(&serialized_data);
 
                 // Also send to client
-                int out = sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *) &int_addr, sizeof(int_addr));
+                int output = sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *) &int_addr, sizeof(int_addr));
 
                 // Make child process not sendto
                 regs.orig_rax = -1;
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
                 // Receive process as the image
                 socklen_t len;
 
-                Print out port and address of destination address
+                // Print out port and address of destination address
                 fprintf(stderr, "Source Address: %s\n", inet_ntoa(source_addr.sin_addr));
                 fprintf(stderr, "Source Port: %d\n", ntohs(source_addr.sin_port));
 
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
                 message.SerializeToString(&serialized_data);
 
                 sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *) &int_addr, sizeof(int_addr));
-                int output = recvfrom(sockfd_send, buffer, 1024, (struct sockaddr *)&int_addr, &len)
+                int output = recvfrom(sockfd_send, buffer, 1024, 0, (struct sockaddr *)&int_addr, &len);
 
                 // Send message back to child process
 

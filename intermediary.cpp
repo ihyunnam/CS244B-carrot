@@ -93,8 +93,8 @@ int main() {
             // Sending data to the specific IP address
             sendto(sockfd_send, message.c_str(), message.length(), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
         } else {
-            recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE, 0, (const struct sockaddr *)&dest_addr, &len);
-            sendto(sockfd_send, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr*>(&cliaddr_receive), sizeof(dest_addr))
+            recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE, 0, (struct sockaddr *)&dest_addr, &len);
+            sendto(sockfd_send, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr*>(&cliaddr_receive), sizeof(dest_addr));
         }
     }
 
