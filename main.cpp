@@ -16,6 +16,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <netdb.h>
 
 // Code for protobufs
 #include "protobufs/messages/message.pb.h"
@@ -39,6 +40,54 @@ bool isBufferNonEmpty(const char buffer[])
         }
     }
     return false; // All characters are whitespace
+}
+
+string extractHostUrl(const char *httpRequest) {
+    const char *hostPrefix = "Host: ";
+    const char *hostLine = strstr(httpRequest, hostPrefix);
+    if (hostLine != nullptr) {
+        hostLine += strlen(hostPrefix);
+        const char *endOfLine = strchr(hostLine, '\n');
+        if (endOfLine != nullptr) {
+            string hostUrl(hostLine, endOfLine - hostLine);
+            return hostUrl;
+        }
+    }
+    return ""; // Return empty string if host URL is not found
+}
+
+string urlToIpAddress(const string &url) {
+    struct addrinfo hints, *res;
+    int status;
+    char ipstr[INET6_ADDRSTRLEN];
+    char portstr[16] = {};
+    sprintf(portstr, "%d", 80);
+
+    // memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_CANONNAME;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    if ((status = getaddrinfo(url.c_str(), portstr, &hints, &res)) != 0) {
+        cerr << "getaddrinfo: " << gai_strerror(status) << endl;
+        return "";
+    }
+
+    void *addr;
+    if (res->ai_family == AF_INET) { // IPv4
+        struct sockaddr_in *ipv4 = (struct sockaddr_in *)res->ai_addr;
+        addr = &(ipv4->sin_addr);
+    } else { // IPv6
+        struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)res->ai_addr;
+        addr = &(ipv6->sin6_addr);
+    }
+
+    inet_ntop(res->ai_family, addr, ipstr, sizeof ipstr);
+
+    freeaddrinfo(res);
+
+    return ipstr;
 }
 
 int main(int argc, char *argv[])
@@ -145,7 +194,12 @@ int main(int argc, char *argv[])
                         break;
                     }
                 }
-                fprintf(stderr, "buffer %s\n", buffer);
+                string url = extractHostUrl(buffer);
+                string ip = urlToIpAddress(url);
+
+                // fprintf(stderr, "buffer %s\n", extractHostUrl(buffer));
+                cout << url << endl;
+                cout << ip << endl;
 
                 // Read in and check destination address information
                 if (isBufferNonEmpty(buffer) and strlen(buffer) > 10)
@@ -155,6 +209,9 @@ int main(int argc, char *argv[])
                     {
                         *((char *)(&dest_addr) + i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
                     }
+
+                    dest_addr.sin_port = htons(80);
+                    inet_pton(AF_INET, ip.c_str(), &dest_addr.sin_addr);
 
                     // Print out port and address of destination address
                     fprintf(stderr, "sin_port %d\n", ntohs(dest_addr.sin_port));
@@ -169,13 +226,13 @@ int main(int argc, char *argv[])
                     // Serialize the message
                     string serialized_data;
                     message.SerializeToString(&serialized_data);
-
+                    
                     // Send message
-                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                    // sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
 
                     // // Make child process not sendto (not working)
-                    regs.orig_rax = SYS_getpid;
-                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+                    // regs.orig_rax = -1;
+                    // ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                 }
             }
 
