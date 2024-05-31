@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/user.h>
 #include "sysnames.h"
+#include <sys/types.h>
 
 #include <sys/syscall.h>
 
@@ -42,49 +43,63 @@ bool isBufferNonEmpty(const char buffer[])
     return false; // All characters are whitespace
 }
 
-string extractHostUrl(const char *httpRequest) {
+string extractHostUrl(const char *httpRequest)
+{
     const char *hostPrefix = "Host: ";
     const char *hostLine = strstr(httpRequest, hostPrefix);
-    if (hostLine != nullptr) {
+    if (hostLine != nullptr)
+    {
         hostLine += strlen(hostPrefix);
         const char *endOfLine = strchr(hostLine, '\n');
-        if (endOfLine != nullptr) {
-            string hostUrl(hostLine, endOfLine - hostLine);
+        if (endOfLine != nullptr)
+        {
+            string hostUrl(hostLine, endOfLine - hostLine - 1);
             return hostUrl;
         }
     }
     return ""; // Return empty string if host URL is not found
 }
 
-string urlToIpAddress(const string &url) {
+string urlToIpAddress(const string &url)
+{
     struct addrinfo hints, *res;
     int status;
     char ipstr[INET6_ADDRSTRLEN];
-    char portstr[16] = {};
-    sprintf(portstr, "%d", 80);
 
-    // memset(&hints, 0, sizeof hints);
+    // Initialize the hints structure
+    memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_CANONNAME;
-    hints.ai_protocol = IPPROTO_TCP;
 
-    if ((status = getaddrinfo(url.c_str(), portstr, &hints, &res)) != 0) {
-        cerr << "getaddrinfo: " << gai_strerror(status) << endl;
+    // Perform the getaddrinfo call
+    cout << url.c_str() << endl;
+    if ((status = getaddrinfo(url.c_str(), NULL, &hints, &res)) != 0)
+    {
+        cerr << "getaddrinfo: " << gai_strerror(status) << " (Error Code: " << status << ")" << endl;
         return "";
     }
 
     void *addr;
-    if (res->ai_family == AF_INET) { // IPv4
+    if (res->ai_family == AF_INET)
+    { // IPv4
         struct sockaddr_in *ipv4 = (struct sockaddr_in *)res->ai_addr;
         addr = &(ipv4->sin_addr);
-    } else { // IPv6
+    }
+    else if (res->ai_family == AF_INET6)
+    { // IPv6
         struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)res->ai_addr;
         addr = &(ipv6->sin6_addr);
     }
+    else
+    {
+        freeaddrinfo(res);
+        return ""; // Unknown address family
+    }
 
+    // Convert the address to a string
     inet_ntop(res->ai_family, addr, ipstr, sizeof ipstr);
 
+    // Free the address info structure
     freeaddrinfo(res);
 
     return ipstr;
@@ -190,19 +205,16 @@ int main(int argc, char *argv[])
                     buffer[i] = ptrace(PTRACE_PEEKDATA, child_pid, regs.rsi + i, 0);
                     if (buffer[i] == '\0')
                     {
-                        cout << i << endl;
                         break;
                     }
                 }
+
+                // Get url and IP address
                 string url = extractHostUrl(buffer);
                 string ip = urlToIpAddress(url);
 
-                // fprintf(stderr, "buffer %s\n", extractHostUrl(buffer));
-                cout << url << endl;
-                cout << ip << endl;
-
                 // Read in and check destination address information
-                if (isBufferNonEmpty(buffer) and strlen(buffer) > 10)
+                if (isBufferNonEmpty(buffer) and strlen(buffer) > 10 and strlen(url.c_str()) > 0)
                 {
                     struct sockaddr_in dest_addr;
                     for (long unsigned int i = 0; i < sizeof(struct sockaddr_in); i += 1)
@@ -210,6 +222,7 @@ int main(int argc, char *argv[])
                         *((char *)(&dest_addr) + i) = ptrace(PTRACE_PEEKDATA, child_pid, regs.r8 + i, 0);
                     }
 
+                    // Set destination port
                     dest_addr.sin_port = htons(80);
                     inet_pton(AF_INET, ip.c_str(), &dest_addr.sin_addr);
 
@@ -226,9 +239,9 @@ int main(int argc, char *argv[])
                     // Serialize the message
                     string serialized_data;
                     message.SerializeToString(&serialized_data);
-                    
+
                     // Send message
-                    // sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
 
                     // // Make child process not sendto (not working)
                     // regs.orig_rax = -1;
