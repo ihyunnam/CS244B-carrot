@@ -31,12 +31,6 @@ int main()
         return -1;
     }
 
-    if ((sockfd_send = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-    {
-        std::cerr << "Socket send creation failed" << std::endl;
-        return -1;
-    }
-
     memset(&servaddr, 0, sizeof(servaddr));
     memset(&cliaddr, 0, sizeof(cliaddr));
 
@@ -57,7 +51,6 @@ int main()
     len = sizeof(cliaddr); // len is value/result
 
     SSL_library_init();
-    SSL_CTX *ssl_ctx = SSL_CTX_new(SSLv23_client_method());
 
     // Receive data indefinitely
     while (true)
@@ -79,11 +72,20 @@ int main()
 
         // Set up destination info
         struct sockaddr_in dest_addr;
-        dest_addr.sin_family = AF_INET;
 
         bzero((char *)&dest_addr, sizeof(dest_addr));
-        dest_addr.sin_port = deserialized_message.port();
+        dest_addr.sin_family = AF_INET;
+        dest_addr.sin_port = htons(443);
         bcopy((char *)server->h_addr, (char *)&dest_addr.sin_addr.s_addr, server->h_length);
+
+        sockfd_send = socket(AF_INET, SOCK_STREAM, 0);
+        if (sockfd_send < 0)
+        {
+            cout << "Failed to create socket" << endl;
+            return 1;
+        }
+        SSL_CTX *ssl_ctx = SSL_CTX_new(SSLv23_client_method());
+        SSL *ssl = SSL_new(ssl_ctx);
 
         if (connect(sockfd_send, (struct sockaddr *)&dest_addr, sizeof(dest_addr)) < 0)
         {
@@ -92,7 +94,6 @@ int main()
             return 1;
         }
 
-        SSL *ssl = SSL_new(ssl_ctx);
         SSL_set_fd(ssl, sockfd_send);
         if (SSL_connect(ssl) <= 0)
         {
@@ -104,7 +105,7 @@ int main()
         }
 
         string resource = "/";
-        string request = "GET " + resource + "" + " HTTP/1.1\r\nHost: " + deserialized_message.message() + "\r\nConnection: close\r\n\r\n";
+        string request = "GET " + resource + "" + " HTTP/1.1\r\nHost: " + deserialized_message.message().c_str() + "\r\nConnection: close\r\n\r\n";
 
         cout << "Request: " << endl
              << request << endl
@@ -125,21 +126,13 @@ int main()
         {
             raw_site.append(buffer, bytes_received);
         }
+
+        SSL_free(ssl);
+        close(sockfd_send);
+        SSL_CTX_free(ssl_ctx);
         cout << raw_site << endl;
 
-        close(sockfd_send);
-        SSL_free(ssl);
-        SSL_CTX_free(ssl_ctx);
-
-        // // Get destination information from the deserialized string
-        // dest_addr.sin_port = htons(deserialized_message.port());
-        // inet_pton(AF_INET, deserialized_message.ip_address().c_str(), &dest_addr.sin_addr);
-
-        // // Perform same sendto and receive
-        // sendto(sockfd, deserialized_message.message().c_str(), deserialized_message.message().length(), 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
-        // n = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-        // buffer[n] = '\0';
-        // cout << "Buffer: " << buffer << endl;
+        // TODO: Send back to main
     }
 
     return 0;

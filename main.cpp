@@ -211,6 +211,8 @@ int main(int argc, char *argv[])
                 }
 
                 // Get url and IP address
+                // TODO: Extract path ++
+                // TODO: Determine if https or not
                 string url = extractHostUrl(buffer);
                 string ip = urlToIpAddress(url);
 
@@ -247,6 +249,8 @@ int main(int argc, char *argv[])
                     // // Make child process not sendto (not working)
                     // regs.orig_rax = -1;
                     // ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+
+                    // TODO: recvfrom receiver
                 }
             }
 
