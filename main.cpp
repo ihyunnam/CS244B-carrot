@@ -29,7 +29,8 @@ using namespace std;
 #define NUM_INTERMEDIARIES 1
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
-    "34.41.143.79"};
+    "34.82.207.241"};
+// "34.41.143.79"};
 
 bool isBufferNonEmpty(const char buffer[])
 {
@@ -232,7 +233,7 @@ int main(int argc, char *argv[])
 
                     // Create a message
                     CarrotMessage message;
-                    message.set_message(buffer);
+                    message.set_message(url);
                     message.set_port(ntohs(dest_addr.sin_port));
                     message.set_ip_address(inet_ntoa(dest_addr.sin_addr));
 
