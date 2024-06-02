@@ -24,13 +24,14 @@
 #include "protobufs/messages/message.pb.cc"
 
 #define PORT 12346
+#define MAX_BUFFER_SIZE 5012
 using namespace std;
 
 #define NUM_INTERMEDIARIES 1
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
-    "34.82.207.241"};
-// "34.41.143.79"};
+    // "34.82.207.241"};
+    "34.41.143.79"};
 
 bool isBufferNonEmpty(const char buffer[])
 {
@@ -121,7 +122,7 @@ int main(int argc, char *argv[])
     }
 
     int sockfd_send;
-    struct sockaddr_in servaddr_send;
+    struct sockaddr_in servaddr_send, cliaddr;
 
     if ((sockfd_send = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
     {
@@ -243,8 +244,14 @@ int main(int argc, char *argv[])
                     string serialized_data;
                     message.SerializeToString(&serialized_data);
 
-                    // Send message
+                    // Send + receive message
+                    socklen_t len;
+                    len = sizeof(cliaddr);
                     sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                    int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                    buffer[n] = '\0';
+                    cout << "Pondoc Buffer: " << buffer << endl;
+                    // int n = rec
 
                     // // Make child process not sendto (not working)
                     // regs.orig_rax = -1;
