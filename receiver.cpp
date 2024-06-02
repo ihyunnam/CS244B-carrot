@@ -58,6 +58,10 @@ int main()
         n = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
         buffer[n] = '\0';
 
+        // Trace sender address and port
+        fprintf(stderr, "Received Message from Address: %s\n", inet_ntoa(cliaddr.sin_addr));
+        fprintf(stderr, "Received Message from Port: %d\n", ntohs(cliaddr.sin_port));
+
         // Deserialize message
         CarrotMessage deserialized_message;
         string serialized_data = buffer;
@@ -130,9 +134,10 @@ int main()
         SSL_free(ssl);
         close(sockfd_send);
         SSL_CTX_free(ssl_ctx);
-        cout << raw_site << endl;
+        // cout << raw_site << endl;
 
         // TODO: Send back to main
+        sendto(sockfd, raw_site.c_str(), raw_site.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
     }
 
     return 0;
