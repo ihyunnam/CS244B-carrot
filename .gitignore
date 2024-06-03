@@ -5,3 +5,8 @@ sender
 intermediary
 main
 protobufs/protobuf
+get_website
+
+# Other stuff
+output.txt
+.vscode/
