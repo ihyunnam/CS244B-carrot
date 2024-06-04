@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message CarrotFileResponse {
+  int32 return = 1;
+  string buffer = 2;
+}
