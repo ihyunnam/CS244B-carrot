@@ -14,8 +14,8 @@
 #include "sysnames.h"
 
 // Code for protobufs
-#include "protobufs/files/file.pb.h"
-#include "protobufs/files/file.pb.cc"
+#include "protobufs/files/request.pb.h"
+#include "protobufs/files/request.pb.cc"
 
 #define PORT 12346 // Change the port number here
 #define MAX_BUFFER_SIZE 1024
@@ -69,19 +69,23 @@ int main()
         fprintf(stderr, "Received Message from Port: %d\n", ntohs(cliaddr.sin_port));
 
         // Deserialize
-        CarrotFile r_file;
+        CarrotFileRequest r_file;
         r_file.ParseFromString(buffer);
 
         // Check system call and save!
         if (r_file.syscall_num() == SYS_openat) {
-            cout << "Saved?" << endl;
-            int fd = open((SAVED_FOLDER + r_file.pathname()).c_str(), r_file.flags(), r_file.mode());
-            cout << "Test?" << endl;
+            int fd = open((SAVED_FOLDER + r_file.buffer()).c_str(), r_file.arg_three(), r_file.arg_four());
+            string fd_str = to_string(fd);
+            sendto(sockfd, fd_str.c_str(), fd_str.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
         }
 
-        // cout << "Pathname: " << deserialized_message.pathname() << endl;
-        // cout << "Port Number: " << deserialized_message.port() << endl;
-        // cout << "Message: " << deserialized_message.message() << endl;
+        // Handle closing a file
+        else if (r_file.syscall_num() == SYS_close) {
+            int result = close(r_file.arg_one());
+            string result_str = to_string(result);
+            sendto(sockfd, result_str.c_str(), result_str.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+
+        }
     }
 
     return 0;
