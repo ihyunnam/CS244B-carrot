@@ -278,9 +278,6 @@ int main(int argc, char *argv[])
                         regs.orig_rax = -1;
                     }
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-                    // regs.rax = stoi(buffer);
-                    // regs.orig_rax = -1;
-                    // ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                 }
             }
 
@@ -316,9 +313,46 @@ int main(int argc, char *argv[])
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
-            cout << "system call number " << syscall_num
-                 << " name " << callname(syscall_num)
-                 << " from pid " << child_pid << std::endl;
+            // Read a file
+            else if (syscall_num == SYS_read)
+            {
+                // Extract proper registers
+                unsigned long fd = regs.rdi;
+                unsigned long count = regs.rdx;
+
+                // Serialize
+                CarrotFileRequest request;
+                request.set_syscall_num(syscall_num);
+                request.set_arg_one(fd);
+                request.set_arg_three(count);
+
+                string serialized_data;
+                request.SerializeToString(&serialized_data);
+
+                // Send to another machine
+                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+
+                // Receive message
+                char buffer[MAX_BUFFER_SIZE];
+                socklen_t len;
+                len = sizeof(cliaddr);
+                int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                buffer[n] = '\0';
+
+                // Handle return value
+                cout << n << endl;
+                if (n != 0)
+                {
+                    regs.rax = n;
+                    regs.orig_rax = -1;
+                    cout << n << endl;
+                }
+                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+            }
+
+            outfile << "system call number " << syscall_num
+                    << " name " << callname(syscall_num)
+                    << " from pid " << child_pid << std::endl;
         }
         outfile.close();
     }
