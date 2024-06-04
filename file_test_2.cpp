@@ -29,11 +29,9 @@ int main()
     while ((bytesRead = read(fd, buffer, bufferSize - 1)) > 0)
     {
         buffer[bytesRead] = '\0'; // Null-terminate the buffer
-        cout << bytesRead << endl;
-        std::cout << buffer;
+        cout << buffer;
     }
 
-    cout << bytesRead << endl;
     if (bytesRead == -1)
     {
         std::cerr << "Error reading from file " << filename << std::endl;

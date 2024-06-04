@@ -339,14 +339,18 @@ int main(int argc, char *argv[])
                 int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
                 buffer[n] = '\0';
 
+                // Deserialize
+                CarrotFileResponse r_file;
+                r_file.ParseFromString(buffer);
+
                 // Handle return value
-                cout << n << endl;
-                if (n != 0)
+                if (r_file.ret_val() != -1)
                 {
-                    regs.rax = n;
+                    regs.rax = r_file.ret_val();
                     regs.orig_rax = -1;
-                    cout << n << endl;
+                    cout << r_file.buffer() << endl;
                 }
+                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
             outfile << "system call number " << syscall_num
