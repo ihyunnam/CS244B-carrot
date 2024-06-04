@@ -84,7 +84,27 @@ int main()
             int result = close(r_file.arg_one());
             string result_str = to_string(result);
             sendto(sockfd, result_str.c_str(), result_str.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+        }
 
+        // Handle reading a file
+        else if (r_file.syscall_num() == SYS_read) {
+            char buffer[r_file.arg_three() - 1];
+            ssize_t bytesRead;
+
+            // Handle errors if necessary
+            bytesRead = read(r_file.arg_one(), buffer, r_file.arg_three() - 1);
+            if (bytesRead == -1) {
+                CarrotFileResponse response;
+                response.set_buffer("");
+                response.set_ret_val(-1);
+                sendto(sockfd, response.buffer().c_str(), response.buffer().length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+            } 
+            
+            // Otherwise, send back normally
+            else {
+                buffer[bytesRead] = '\0';
+                sendto(sockfd, buffer, bytesRead, 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+            }
         }
     }
 
