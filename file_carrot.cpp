@@ -26,10 +26,8 @@ std::string files[] = {
     "/lib/x86_64-linux-gnu/libm.so.6"};
 
 // Code for protobufs
-#include "protobufs/files/request.pb.h"
-#include "protobufs/files/request.pb.cc"
-#include "protobufs/files/response.pb.h"
-#include "protobufs/files/response.pb.cc"
+#include "protobufs/files/file.pb.h"
+#include "protobufs/files/file.pb.cc"
 
 #define PORT 12346
 #define MAX_BUFFER_SIZE 5012
@@ -39,7 +37,7 @@ using namespace std;
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     // "34.82.207.241"};
-    "34.41.143.79"};
+    "34.69.125.94"};
 
 bool isBufferNonEmpty(const char buffer[])
 {
@@ -278,9 +276,9 @@ int main(int argc, char *argv[])
                     response.ParseFromString(serialized_data);
 
                     // Change return value
-                    if (response.return() != -1)
+                    if (response.return_val() != -1)
                     {
-                        regs.rax = response.return();
+                        regs.rax = response.return_val();
                         regs.orig_rax = -1;
                     }
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
@@ -318,9 +316,9 @@ int main(int argc, char *argv[])
                 response.ParseFromString(serialized_data);
 
                 // Change return value
-                if (response.return() != -1)
+                if (response.return_val() != -1)
                 {
-                    regs.rax = response.return();
+                    regs.rax = response.return_val();
                     regs.orig_rax = -1;
                 }
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);

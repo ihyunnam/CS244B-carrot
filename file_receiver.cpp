@@ -14,10 +14,8 @@
 #include "sysnames.h"
 
 // Code for protobufs
-#include "protobufs/files/request.pb.h"
-#include "protobufs/files/request.pb.cc"
-#include "protobufs/files/response.pb.h"
-#include "protobufs/files/response.pb.cc"
+#include "protobufs/files/file.pb.h"
+#include "protobufs/files/file.pb.cc"
 
 #define PORT 12346 // Change the port number here
 #define MAX_BUFFER_SIZE 1024
@@ -79,7 +77,7 @@ int main()
             int fd = open((SAVED_FOLDER + r_file.buffer()).c_str(), r_file.arg_three(), r_file.arg_four());
 
             CarrotFileResponse r_response;
-            r_response.set_return(fd);
+            r_response.set_return_val(fd);
 
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
@@ -91,18 +89,18 @@ int main()
             int result = close(r_file.arg_one());
 
             CarrotFileResponse r_response;
-            r_response.set_return(result);
+            r_response.set_return_val(result);
 
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
         }
 
-        else if (r_file.syscall_num == SYS_read) {
+        else if (r_file.syscall_num() == SYS_read) {
             int result = read(r_file.arg_one(), buffer, r_file.arg_three());
             buffer[n] = '\0';
             CarrotFileResponse r_response;
-            r_response.set_return(result);
+            r_response.set_return_val(result);
             r_response.set_buffer(string(buffer));
 
             string serialized_data;

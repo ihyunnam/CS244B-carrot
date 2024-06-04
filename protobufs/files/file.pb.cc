@@ -20,56 +20,92 @@ PROTOBUF_PRAGMA_INIT_SEG
 namespace _pb = ::PROTOBUF_NAMESPACE_ID;
 namespace _pbi = _pb::internal;
 
-PROTOBUF_CONSTEXPR CarrotFile::CarrotFile(
+PROTOBUF_CONSTEXPR CarrotFileRequest::CarrotFileRequest(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.pathname_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_.buffer_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.syscall_num_)*/0
-  , /*decltype(_impl_.flags_)*/0
-  , /*decltype(_impl_.mode_)*/0
+  , /*decltype(_impl_.arg_one_)*/0
+  , /*decltype(_impl_.arg_two_)*/0
+  , /*decltype(_impl_.arg_three_)*/0
+  , /*decltype(_impl_.arg_four_)*/0
+  , /*decltype(_impl_.arg_five_)*/0
+  , /*decltype(_impl_.arg_six_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
-struct CarrotFileDefaultTypeInternal {
-  PROTOBUF_CONSTEXPR CarrotFileDefaultTypeInternal()
+struct CarrotFileRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR CarrotFileRequestDefaultTypeInternal()
       : _instance(::_pbi::ConstantInitialized{}) {}
-  ~CarrotFileDefaultTypeInternal() {}
+  ~CarrotFileRequestDefaultTypeInternal() {}
   union {
-    CarrotFile _instance;
+    CarrotFileRequest _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CarrotFileDefaultTypeInternal _CarrotFile_default_instance_;
-static ::_pb::Metadata file_level_metadata_file_2eproto[1];
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CarrotFileRequestDefaultTypeInternal _CarrotFileRequest_default_instance_;
+PROTOBUF_CONSTEXPR CarrotFileResponse::CarrotFileResponse(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.buffer_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.return_val_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct CarrotFileResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR CarrotFileResponseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~CarrotFileResponseDefaultTypeInternal() {}
+  union {
+    CarrotFileResponse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CarrotFileResponseDefaultTypeInternal _CarrotFileResponse_default_instance_;
+static ::_pb::Metadata file_level_metadata_file_2eproto[2];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_file_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_file_2eproto = nullptr;
 
 const uint32_t TableStruct_file_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::CarrotFile, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileRequest, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::CarrotFile, _impl_.syscall_num_),
-  PROTOBUF_FIELD_OFFSET(::CarrotFile, _impl_.pathname_),
-  PROTOBUF_FIELD_OFFSET(::CarrotFile, _impl_.flags_),
-  PROTOBUF_FIELD_OFFSET(::CarrotFile, _impl_.mode_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileRequest, _impl_.syscall_num_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileRequest, _impl_.buffer_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileRequest, _impl_.arg_one_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileRequest, _impl_.arg_two_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileRequest, _impl_.arg_three_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileRequest, _impl_.arg_four_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileRequest, _impl_.arg_five_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileRequest, _impl_.arg_six_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::CarrotFileResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::CarrotFileResponse, _impl_.return_val_),
+  PROTOBUF_FIELD_OFFSET(::CarrotFileResponse, _impl_.buffer_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, -1, sizeof(::CarrotFile)},
+  { 0, -1, -1, sizeof(::CarrotFileRequest)},
+  { 14, -1, -1, sizeof(::CarrotFileResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
-  &::_CarrotFile_default_instance_._instance,
+  &::_CarrotFileRequest_default_instance_._instance,
+  &::_CarrotFileResponse_default_instance_._instance,
 };
 
 const char descriptor_table_protodef_file_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nfile.proto\"P\n\nCarrotFile\022\023\n\013syscall_nu"
-  "m\030\001 \001(\005\022\020\n\010pathname\030\002 \001(\t\022\r\n\005flags\030\003 \001(\005"
-  "\022\014\n\004mode\030\004 \001(\005b\006proto3"
+  "\n\nfile.proto\"\242\001\n\021CarrotFileRequest\022\023\n\013sy"
+  "scall_num\030\001 \001(\005\022\016\n\006buffer\030\002 \001(\t\022\017\n\007arg_o"
+  "ne\030\003 \001(\005\022\017\n\007arg_two\030\004 \001(\005\022\021\n\targ_three\030\005"
+  " \001(\005\022\020\n\010arg_four\030\006 \001(\005\022\020\n\010arg_five\030\007 \001(\005"
+  "\022\017\n\007arg_six\030\010 \001(\005\"8\n\022CarrotFileResponse\022"
+  "\022\n\nreturn_val\030\001 \001(\005\022\016\n\006buffer\030\002 \001(\tb\006pro"
+  "to3"
   ;
 static ::_pbi::once_flag descriptor_table_file_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_file_2eproto = {
-    false, false, 102, descriptor_table_protodef_file_2eproto,
+    false, false, 243, descriptor_table_protodef_file_2eproto,
     "file.proto",
-    &descriptor_table_file_2eproto_once, nullptr, 0, 1,
+    &descriptor_table_file_2eproto_once, nullptr, 0, 2,
     schemas, file_default_instances, TableStruct_file_2eproto::offsets,
     file_level_metadata_file_2eproto, file_level_enum_descriptors_file_2eproto,
     file_level_service_descriptors_file_2eproto,
@@ -83,60 +119,68 @@ PROTOBUF_ATTRIBUTE_INIT_PRIORITY2 static ::_pbi::AddDescriptorsRunner dynamic_in
 
 // ===================================================================
 
-class CarrotFile::_Internal {
+class CarrotFileRequest::_Internal {
  public:
 };
 
-CarrotFile::CarrotFile(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+CarrotFileRequest::CarrotFileRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
-  // @@protoc_insertion_point(arena_constructor:CarrotFile)
+  // @@protoc_insertion_point(arena_constructor:CarrotFileRequest)
 }
-CarrotFile::CarrotFile(const CarrotFile& from)
+CarrotFileRequest::CarrotFileRequest(const CarrotFileRequest& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
-  CarrotFile* const _this = this; (void)_this;
+  CarrotFileRequest* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.pathname_){}
+      decltype(_impl_.buffer_){}
     , decltype(_impl_.syscall_num_){}
-    , decltype(_impl_.flags_){}
-    , decltype(_impl_.mode_){}
+    , decltype(_impl_.arg_one_){}
+    , decltype(_impl_.arg_two_){}
+    , decltype(_impl_.arg_three_){}
+    , decltype(_impl_.arg_four_){}
+    , decltype(_impl_.arg_five_){}
+    , decltype(_impl_.arg_six_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.pathname_.InitDefault();
+  _impl_.buffer_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.pathname_.Set("", GetArenaForAllocation());
+    _impl_.buffer_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_pathname().empty()) {
-    _this->_impl_.pathname_.Set(from._internal_pathname(), 
+  if (!from._internal_buffer().empty()) {
+    _this->_impl_.buffer_.Set(from._internal_buffer(), 
       _this->GetArenaForAllocation());
   }
   ::memcpy(&_impl_.syscall_num_, &from._impl_.syscall_num_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.mode_) -
-    reinterpret_cast<char*>(&_impl_.syscall_num_)) + sizeof(_impl_.mode_));
-  // @@protoc_insertion_point(copy_constructor:CarrotFile)
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.arg_six_) -
+    reinterpret_cast<char*>(&_impl_.syscall_num_)) + sizeof(_impl_.arg_six_));
+  // @@protoc_insertion_point(copy_constructor:CarrotFileRequest)
 }
 
-inline void CarrotFile::SharedCtor(
+inline void CarrotFileRequest::SharedCtor(
     ::_pb::Arena* arena, bool is_message_owned) {
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.pathname_){}
+      decltype(_impl_.buffer_){}
     , decltype(_impl_.syscall_num_){0}
-    , decltype(_impl_.flags_){0}
-    , decltype(_impl_.mode_){0}
+    , decltype(_impl_.arg_one_){0}
+    , decltype(_impl_.arg_two_){0}
+    , decltype(_impl_.arg_three_){0}
+    , decltype(_impl_.arg_four_){0}
+    , decltype(_impl_.arg_five_){0}
+    , decltype(_impl_.arg_six_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
-  _impl_.pathname_.InitDefault();
+  _impl_.buffer_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.pathname_.Set("", GetArenaForAllocation());
+    _impl_.buffer_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
-CarrotFile::~CarrotFile() {
-  // @@protoc_insertion_point(destructor:CarrotFile)
+CarrotFileRequest::~CarrotFileRequest() {
+  // @@protoc_insertion_point(destructor:CarrotFileRequest)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
     return;
@@ -144,29 +188,29 @@ CarrotFile::~CarrotFile() {
   SharedDtor();
 }
 
-inline void CarrotFile::SharedDtor() {
+inline void CarrotFileRequest::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.pathname_.Destroy();
+  _impl_.buffer_.Destroy();
 }
 
-void CarrotFile::SetCachedSize(int size) const {
+void CarrotFileRequest::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
 
-void CarrotFile::Clear() {
-// @@protoc_insertion_point(message_clear_start:CarrotFile)
+void CarrotFileRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:CarrotFileRequest)
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.pathname_.ClearToEmpty();
+  _impl_.buffer_.ClearToEmpty();
   ::memset(&_impl_.syscall_num_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.mode_) -
-      reinterpret_cast<char*>(&_impl_.syscall_num_)) + sizeof(_impl_.mode_));
+      reinterpret_cast<char*>(&_impl_.arg_six_) -
+      reinterpret_cast<char*>(&_impl_.syscall_num_)) + sizeof(_impl_.arg_six_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* CarrotFile::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+const char* CarrotFileRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     uint32_t tag;
@@ -180,28 +224,60 @@ const char* CarrotFile::_InternalParse(const char* ptr, ::_pbi::ParseContext* ct
         } else
           goto handle_unusual;
         continue;
-      // string pathname = 2;
+      // string buffer = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
-          auto str = _internal_mutable_pathname();
+          auto str = _internal_mutable_buffer();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "CarrotFile.pathname"));
+          CHK_(::_pbi::VerifyUTF8(str, "CarrotFileRequest.buffer"));
         } else
           goto handle_unusual;
         continue;
-      // int32 flags = 3;
+      // int32 arg_one = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
-          _impl_.flags_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          _impl_.arg_one_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // int32 mode = 4;
+      // int32 arg_two = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
-          _impl_.mode_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          _impl_.arg_two_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 arg_three = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.arg_three_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 arg_four = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          _impl_.arg_four_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 arg_five = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.arg_five_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 arg_six = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 64)) {
+          _impl_.arg_six_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -229,9 +305,9 @@ failure:
 #undef CHK_
 }
 
-uint8_t* CarrotFile::_InternalSerialize(
+uint8_t* CarrotFileRequest::_InternalSerialize(
     uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:CarrotFile)
+  // @@protoc_insertion_point(serialize_to_array_start:CarrotFileRequest)
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -241,49 +317,73 @@ uint8_t* CarrotFile::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_syscall_num(), target);
   }
 
-  // string pathname = 2;
-  if (!this->_internal_pathname().empty()) {
+  // string buffer = 2;
+  if (!this->_internal_buffer().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_pathname().data(), static_cast<int>(this->_internal_pathname().length()),
+      this->_internal_buffer().data(), static_cast<int>(this->_internal_buffer().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "CarrotFile.pathname");
+      "CarrotFileRequest.buffer");
     target = stream->WriteStringMaybeAliased(
-        2, this->_internal_pathname(), target);
+        2, this->_internal_buffer(), target);
   }
 
-  // int32 flags = 3;
-  if (this->_internal_flags() != 0) {
+  // int32 arg_one = 3;
+  if (this->_internal_arg_one() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_flags(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(3, this->_internal_arg_one(), target);
   }
 
-  // int32 mode = 4;
-  if (this->_internal_mode() != 0) {
+  // int32 arg_two = 4;
+  if (this->_internal_arg_two() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_mode(), target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_arg_two(), target);
+  }
+
+  // int32 arg_three = 5;
+  if (this->_internal_arg_three() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(5, this->_internal_arg_three(), target);
+  }
+
+  // int32 arg_four = 6;
+  if (this->_internal_arg_four() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_arg_four(), target);
+  }
+
+  // int32 arg_five = 7;
+  if (this->_internal_arg_five() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(7, this->_internal_arg_five(), target);
+  }
+
+  // int32 arg_six = 8;
+  if (this->_internal_arg_six() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(8, this->_internal_arg_six(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:CarrotFile)
+  // @@protoc_insertion_point(serialize_to_array_end:CarrotFileRequest)
   return target;
 }
 
-size_t CarrotFile::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:CarrotFile)
+size_t CarrotFileRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:CarrotFileRequest)
   size_t total_size = 0;
 
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string pathname = 2;
-  if (!this->_internal_pathname().empty()) {
+  // string buffer = 2;
+  if (!this->_internal_buffer().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_pathname());
+        this->_internal_buffer());
   }
 
   // int32 syscall_num = 1;
@@ -291,88 +391,354 @@ size_t CarrotFile::ByteSizeLong() const {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_syscall_num());
   }
 
-  // int32 flags = 3;
-  if (this->_internal_flags() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_flags());
+  // int32 arg_one = 3;
+  if (this->_internal_arg_one() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_arg_one());
   }
 
-  // int32 mode = 4;
-  if (this->_internal_mode() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_mode());
+  // int32 arg_two = 4;
+  if (this->_internal_arg_two() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_arg_two());
+  }
+
+  // int32 arg_three = 5;
+  if (this->_internal_arg_three() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_arg_three());
+  }
+
+  // int32 arg_four = 6;
+  if (this->_internal_arg_four() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_arg_four());
+  }
+
+  // int32 arg_five = 7;
+  if (this->_internal_arg_five() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_arg_five());
+  }
+
+  // int32 arg_six = 8;
+  if (this->_internal_arg_six() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_arg_six());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData CarrotFile::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData CarrotFileRequest::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
-    CarrotFile::MergeImpl
+    CarrotFileRequest::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*CarrotFile::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*CarrotFileRequest::GetClassData() const { return &_class_data_; }
 
 
-void CarrotFile::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
-  auto* const _this = static_cast<CarrotFile*>(&to_msg);
-  auto& from = static_cast<const CarrotFile&>(from_msg);
-  // @@protoc_insertion_point(class_specific_merge_from_start:CarrotFile)
+void CarrotFileRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<CarrotFileRequest*>(&to_msg);
+  auto& from = static_cast<const CarrotFileRequest&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:CarrotFileRequest)
   GOOGLE_DCHECK_NE(&from, _this);
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (!from._internal_pathname().empty()) {
-    _this->_internal_set_pathname(from._internal_pathname());
+  if (!from._internal_buffer().empty()) {
+    _this->_internal_set_buffer(from._internal_buffer());
   }
   if (from._internal_syscall_num() != 0) {
     _this->_internal_set_syscall_num(from._internal_syscall_num());
   }
-  if (from._internal_flags() != 0) {
-    _this->_internal_set_flags(from._internal_flags());
+  if (from._internal_arg_one() != 0) {
+    _this->_internal_set_arg_one(from._internal_arg_one());
   }
-  if (from._internal_mode() != 0) {
-    _this->_internal_set_mode(from._internal_mode());
+  if (from._internal_arg_two() != 0) {
+    _this->_internal_set_arg_two(from._internal_arg_two());
+  }
+  if (from._internal_arg_three() != 0) {
+    _this->_internal_set_arg_three(from._internal_arg_three());
+  }
+  if (from._internal_arg_four() != 0) {
+    _this->_internal_set_arg_four(from._internal_arg_four());
+  }
+  if (from._internal_arg_five() != 0) {
+    _this->_internal_set_arg_five(from._internal_arg_five());
+  }
+  if (from._internal_arg_six() != 0) {
+    _this->_internal_set_arg_six(from._internal_arg_six());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void CarrotFile::CopyFrom(const CarrotFile& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:CarrotFile)
+void CarrotFileRequest::CopyFrom(const CarrotFileRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:CarrotFileRequest)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool CarrotFile::IsInitialized() const {
+bool CarrotFileRequest::IsInitialized() const {
   return true;
 }
 
-void CarrotFile::InternalSwap(CarrotFile* other) {
+void CarrotFileRequest::InternalSwap(CarrotFileRequest* other) {
   using std::swap;
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.pathname_, lhs_arena,
-      &other->_impl_.pathname_, rhs_arena
+      &_impl_.buffer_, lhs_arena,
+      &other->_impl_.buffer_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(CarrotFile, _impl_.mode_)
-      + sizeof(CarrotFile::_impl_.mode_)
-      - PROTOBUF_FIELD_OFFSET(CarrotFile, _impl_.syscall_num_)>(
+      PROTOBUF_FIELD_OFFSET(CarrotFileRequest, _impl_.arg_six_)
+      + sizeof(CarrotFileRequest::_impl_.arg_six_)
+      - PROTOBUF_FIELD_OFFSET(CarrotFileRequest, _impl_.syscall_num_)>(
           reinterpret_cast<char*>(&_impl_.syscall_num_),
           reinterpret_cast<char*>(&other->_impl_.syscall_num_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata CarrotFile::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata CarrotFileRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_file_2eproto_getter, &descriptor_table_file_2eproto_once,
       file_level_metadata_file_2eproto[0]);
 }
 
+// ===================================================================
+
+class CarrotFileResponse::_Internal {
+ public:
+};
+
+CarrotFileResponse::CarrotFileResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:CarrotFileResponse)
+}
+CarrotFileResponse::CarrotFileResponse(const CarrotFileResponse& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  CarrotFileResponse* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.buffer_){}
+    , decltype(_impl_.return_val_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.buffer_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.buffer_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_buffer().empty()) {
+    _this->_impl_.buffer_.Set(from._internal_buffer(), 
+      _this->GetArenaForAllocation());
+  }
+  _this->_impl_.return_val_ = from._impl_.return_val_;
+  // @@protoc_insertion_point(copy_constructor:CarrotFileResponse)
+}
+
+inline void CarrotFileResponse::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.buffer_){}
+    , decltype(_impl_.return_val_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.buffer_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.buffer_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+CarrotFileResponse::~CarrotFileResponse() {
+  // @@protoc_insertion_point(destructor:CarrotFileResponse)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void CarrotFileResponse::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.buffer_.Destroy();
+}
+
+void CarrotFileResponse::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void CarrotFileResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:CarrotFileResponse)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.buffer_.ClearToEmpty();
+  _impl_.return_val_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* CarrotFileResponse::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 return_val = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.return_val_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string buffer = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_buffer();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "CarrotFileResponse.buffer"));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* CarrotFileResponse::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:CarrotFileResponse)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 return_val = 1;
+  if (this->_internal_return_val() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_return_val(), target);
+  }
+
+  // string buffer = 2;
+  if (!this->_internal_buffer().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_buffer().data(), static_cast<int>(this->_internal_buffer().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "CarrotFileResponse.buffer");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_buffer(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:CarrotFileResponse)
+  return target;
+}
+
+size_t CarrotFileResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:CarrotFileResponse)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string buffer = 2;
+  if (!this->_internal_buffer().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_buffer());
+  }
+
+  // int32 return_val = 1;
+  if (this->_internal_return_val() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_return_val());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData CarrotFileResponse::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    CarrotFileResponse::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*CarrotFileResponse::GetClassData() const { return &_class_data_; }
+
+
+void CarrotFileResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<CarrotFileResponse*>(&to_msg);
+  auto& from = static_cast<const CarrotFileResponse&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:CarrotFileResponse)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_buffer().empty()) {
+    _this->_internal_set_buffer(from._internal_buffer());
+  }
+  if (from._internal_return_val() != 0) {
+    _this->_internal_set_return_val(from._internal_return_val());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void CarrotFileResponse::CopyFrom(const CarrotFileResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:CarrotFileResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool CarrotFileResponse::IsInitialized() const {
+  return true;
+}
+
+void CarrotFileResponse::InternalSwap(CarrotFileResponse* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.buffer_, lhs_arena,
+      &other->_impl_.buffer_, rhs_arena
+  );
+  swap(_impl_.return_val_, other->_impl_.return_val_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata CarrotFileResponse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_file_2eproto_getter, &descriptor_table_file_2eproto_once,
+      file_level_metadata_file_2eproto[1]);
+}
+
 // @@protoc_insertion_point(namespace_scope)
 PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::CarrotFile*
-Arena::CreateMaybeMessage< ::CarrotFile >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::CarrotFile >(arena);
+template<> PROTOBUF_NOINLINE ::CarrotFileRequest*
+Arena::CreateMaybeMessage< ::CarrotFileRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::CarrotFileRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::CarrotFileResponse*
+Arena::CreateMaybeMessage< ::CarrotFileResponse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::CarrotFileResponse >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

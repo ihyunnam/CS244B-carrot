@@ -10,3 +10,8 @@ message CarrotFileRequest {
   int32 arg_five = 7;
   int32 arg_six = 8;
 }
+
+message CarrotFileResponse {
+  int32 return_val = 1;
+  string buffer = 2;
+}
