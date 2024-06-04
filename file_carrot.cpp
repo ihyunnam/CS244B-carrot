@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
                 {
                     regs.rax = response.return_val();
 
-                    for (int i = 0; i < response.return_val(); i += sizeof(long))
+                    for (int i = 0; i < response.return_val(); i += 1)
                     {
                         ptrace(PTRACE_POKEDATA, child_pid, regs.rsi + i, *(response_buf+i));
                     }
@@ -367,6 +367,49 @@ int main(int argc, char *argv[])
                 }
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
+
+            // Write from file
+            else if (syscall_num == SYS_write) {
+                unsigned long fd = regs.rdi; // rdi contains the first argument (dirfd)
+                unsigned long buffer_addr = regs.rsi; // rdi contains the first argument (dirfd)
+                unsigned long count = regs.rdx; // rdx contains the third argument (count)
+
+                std::string data = readStringFromProcess(child_pid, buffer_addr);
+
+                // Serialize
+                CarrotFileRequest request;
+                request.set_syscall_num(syscall_num);
+                request.set_arg_one(fd);
+                request.set_buffer(data);
+                request.set_arg_three(count);
+
+                string serialized_data;
+                request.SerializeToString(&serialized_data);
+
+                // Send to another machine
+                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+
+                // Receive message
+                char buffer[MAX_BUFFER_SIZE];
+                socklen_t len;
+                len = sizeof(cliaddr); // len is value/result
+                int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                buffer[n] = '\0';
+
+                CarrotFileResponse response;
+                serialized_data = buffer;
+                response.ParseFromString(serialized_data);
+                const char* response_buf = response.buffer().c_str();
+
+                // Change return value
+                if (response.return_val() != -1)
+                {
+                    regs.rax = response.return_val();
+                    regs.orig_rax = -1;
+                }
+                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+            }
+            
 
             cout << "system call number " << syscall_num
                  << " name " << callname(syscall_num)

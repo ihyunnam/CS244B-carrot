@@ -8,7 +8,16 @@ int main()
     const char *filename = "test.txt";
 
     // Open the file in output mode (this will create the file if it does not exist)
-    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    int fd = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+
+    std::cout << fd << std::endl;
+
+    char buffer[1024];
+
+    int resp = read(fd, buffer, 1024);
+    resp = write(fd, "doodle", 5);
+    std::cout << buffer << resp << std::endl;
+
 
     // Check if the file was successfully opened
     if (fd == -1)
