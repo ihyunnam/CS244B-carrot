@@ -97,13 +97,24 @@ int main()
                 CarrotFileResponse response;
                 response.set_buffer("");
                 response.set_ret_val(-1);
-                sendto(sockfd, response.buffer().c_str(), response.buffer().length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+
+                // Serialize and send
+                string serialized_data;
+                response.SerializeToString(&serialized_data);
+                sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
             } 
             
             // Otherwise, send back normally
             else {
                 buffer[bytesRead] = '\0';
-                sendto(sockfd, buffer, bytesRead, 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+                CarrotFileResponse response;
+                response.set_buffer(string(buffer));
+                response.set_ret_val(bytesRead);
+
+                // Serialize and send
+                string serialized_data;
+                response.SerializeToString(&serialized_data);
+                sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
             }
         }
     }
