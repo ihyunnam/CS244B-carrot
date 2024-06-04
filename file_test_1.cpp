@@ -5,7 +5,7 @@
 
 int main()
 {
-    const char *filename = "data/test.txt";
+    const char *filename = "alot.txt";
 
     // Open the file in output mode (this will create the file if it does not exist)
     int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
