@@ -28,6 +28,8 @@ std::string files[] = {
 // Code for protobufs
 #include "protobufs/files/request.pb.h"
 #include "protobufs/files/request.pb.cc"
+#include "protobufs/files/response.pb.h"
+#include "protobufs/files/response.pb.cc"
 
 #define PORT 12346
 #define MAX_BUFFER_SIZE 5012
@@ -271,10 +273,14 @@ int main(int argc, char *argv[])
                     int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
                     buffer[n] = '\0';
 
+                    CarrotFileResponse response;
+                    serialized_data = buffer;
+                    response.ParseFromString(serialized_data);
+
                     // Change return value
-                    if (stoi(buffer) != -1)
+                    if (response.return() != -1)
                     {
-                        regs.rax = stoi(buffer);
+                        regs.rax = response.return();
                         regs.orig_rax = -1;
                     }
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
@@ -307,13 +313,22 @@ int main(int argc, char *argv[])
                 int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
                 buffer[n] = '\0';
 
+                CarrotFileResponse response;
+                serialized_data = buffer;
+                response.ParseFromString(serialized_data);
+
                 // Change return value
-                if (stoi(buffer) != -1)
+                if (response.return() != -1)
                 {
-                    regs.rax = stoi(buffer);
+                    regs.rax = response.return();
                     regs.orig_rax = -1;
                 }
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+            }
+
+            // Read from file
+            else if (syscall_num == SYS_read) {
+
             }
 
             cout << "system call number " << syscall_num
