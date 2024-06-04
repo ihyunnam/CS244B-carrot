@@ -98,10 +98,20 @@ int main()
 
         else if (r_file.syscall_num() == SYS_read) {
             int result = read(r_file.arg_one(), buffer, r_file.arg_three());
-            buffer[n] = '\0';
+            buffer[result] = '\0';
             CarrotFileResponse r_response;
             r_response.set_return_val(result);
             r_response.set_buffer(string(buffer));
+
+            string serialized_data;
+            r_response.SerializeToString(&serialized_data);
+            sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+        }
+
+        else if (r_file.syscall_num() == SYS_write) {
+            int result = write(r_file.arg_one(), r_file.buffer().c_str(), r_file.arg_three());
+            CarrotFileResponse r_response;
+            r_response.set_return_val(result);
 
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
