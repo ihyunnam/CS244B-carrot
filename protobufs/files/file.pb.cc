@@ -98,7 +98,7 @@ const char descriptor_table_protodef_file_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   "ne\030\003 \001(\005\022\017\n\007arg_two\030\004 \001(\005\022\021\n\targ_three\030\005"
   " \001(\005\022\020\n\010arg_four\030\006 \001(\005\022\020\n\010arg_five\030\007 \001(\005"
   "\022\017\n\007arg_six\030\010 \001(\005\"8\n\022CarrotFileResponse\022"
-  "\022\n\nreturn_val\030\001 \001(\005\022\016\n\006buffer\030\002 \001(\tb\006pro"
+  "\022\n\nreturn_val\030\001 \001(\005\022\016\n\006buffer\030\002 \001(\014b\006pro"
   "to3"
   ;
 static ::_pbi::once_flag descriptor_table_file_2eproto_once;
@@ -591,13 +591,12 @@ const char* CarrotFileResponse::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // string buffer = 2;
+      // bytes buffer = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_buffer();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "CarrotFileResponse.buffer"));
         } else
           goto handle_unusual;
         continue;
@@ -636,13 +635,9 @@ uint8_t* CarrotFileResponse::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_return_val(), target);
   }
 
-  // string buffer = 2;
+  // bytes buffer = 2;
   if (!this->_internal_buffer().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_buffer().data(), static_cast<int>(this->_internal_buffer().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "CarrotFileResponse.buffer");
-    target = stream->WriteStringMaybeAliased(
+    target = stream->WriteBytesMaybeAliased(
         2, this->_internal_buffer(), target);
   }
 
@@ -662,10 +657,10 @@ size_t CarrotFileResponse::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string buffer = 2;
+  // bytes buffer = 2;
   if (!this->_internal_buffer().empty()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
         this->_internal_buffer());
   }
 

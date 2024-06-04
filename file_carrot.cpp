@@ -17,6 +17,7 @@
 #include <netdb.h>
 #include <cerrno>
 #include <algorithm>
+#include <fcntl.h>
 
 std::string files[] = {
     "/etc/ld.so.cache",
@@ -111,6 +112,58 @@ string urlToIpAddress(const string &url)
     freeaddrinfo(res);
 
     return ipstr;
+}
+
+// Function to write memory to /proc/[pid]/mem
+ssize_t write_memory(pid_t pid, unsigned long addr, void *vptr, size_t len) {
+    char mem_path[256];
+    snprintf(mem_path, sizeof(mem_path), "/proc/%d/mem", pid);
+
+    int fd = open(mem_path, O_WRONLY);
+    if (fd == -1) {
+        perror("open");
+        return -1;
+    }
+
+    if (lseek(fd, addr, SEEK_SET) == -1) {
+        perror("lseek");
+        close(fd);
+        return -1;
+    }
+
+    ssize_t n = write(fd, vptr, len);
+    if (n == -1) {
+        perror("write");
+    }
+
+    close(fd);
+    return n;
+}
+
+// Function to read memory from /proc/[pid]/mem
+ssize_t read_memory(pid_t pid, unsigned long addr, void *vptr, size_t len) {
+    char mem_path[256];
+    snprintf(mem_path, sizeof(mem_path), "/proc/%d/mem", pid);
+
+    int fd = open(mem_path, O_RDONLY);
+    if (fd == -1) {
+        perror("open");
+        return -1;
+    }
+
+    if (lseek(fd, addr, SEEK_SET) == -1) {
+        perror("lseek");
+        close(fd);
+        return -1;
+    }
+
+    ssize_t n = read(fd, vptr, len);
+    if (n == -1) {
+        perror("read");
+    }
+
+    close(fd);
+    return n;
 }
 
 // Read string from openat
@@ -234,6 +287,7 @@ int main(int argc, char *argv[])
             struct user_regs_struct regs;
             ptrace(PTRACE_GETREGS, child_pid, nullptr, &regs);
             long syscall_num = regs.orig_rax;
+            char buffer[MAX_BUFFER_SIZE];
 
             if (syscall_num == SYS_open || syscall_num == SYS_openat)
             {
@@ -265,7 +319,6 @@ int main(int argc, char *argv[])
                     sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
 
                     // Receive message
-                    char buffer[MAX_BUFFER_SIZE];
                     socklen_t len;
                     len = sizeof(cliaddr); // len is value/result
                     int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
@@ -305,7 +358,6 @@ int main(int argc, char *argv[])
                 sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
 
                 // Receive message
-                char buffer[MAX_BUFFER_SIZE];
                 socklen_t len;
                 len = sizeof(cliaddr); // len is value/result
                 int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
@@ -343,7 +395,6 @@ int main(int argc, char *argv[])
                 sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
 
                 // Receive message
-                char buffer[MAX_BUFFER_SIZE];
                 socklen_t len;
                 len = sizeof(cliaddr); // len is value/result
                 int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
@@ -359,10 +410,8 @@ int main(int argc, char *argv[])
                 {
                     regs.rax = response.return_val();
 
-                    for (int i = 0; i < response.return_val(); i += 1)
-                    {
-                        ptrace(PTRACE_POKEDATA, child_pid, regs.rsi + i, *(response_buf+i));
-                    }
+                    write_memory(child_pid, regs.rsi, (void*)response_buf, response.return_val());
+
                     regs.orig_rax = -1;
                 }
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
@@ -374,7 +423,9 @@ int main(int argc, char *argv[])
                 unsigned long buffer_addr = regs.rsi; // rdi contains the first argument (dirfd)
                 unsigned long count = regs.rdx; // rdx contains the third argument (count)
 
-                std::string data = readStringFromProcess(child_pid, buffer_addr);
+                read_memory(child_pid, buffer_addr, buffer, count);
+
+                std::string data = buffer;
 
                 // Serialize
                 CarrotFileRequest request;
@@ -390,7 +441,6 @@ int main(int argc, char *argv[])
                 sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
 
                 // Receive message
-                char buffer[MAX_BUFFER_SIZE];
                 socklen_t len;
                 len = sizeof(cliaddr); // len is value/result
                 int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
