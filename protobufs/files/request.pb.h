@@ -47,8 +47,12 @@ extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table
 class CarrotFileRequest;
 struct CarrotFileRequestDefaultTypeInternal;
 extern CarrotFileRequestDefaultTypeInternal _CarrotFileRequest_default_instance_;
+class CarrotFileResponse;
+struct CarrotFileResponseDefaultTypeInternal;
+extern CarrotFileResponseDefaultTypeInternal _CarrotFileResponse_default_instance_;
 PROTOBUF_NAMESPACE_OPEN
 template<> ::CarrotFileRequest* Arena::CreateMaybeMessage<::CarrotFileRequest>(Arena*);
+template<> ::CarrotFileResponse* Arena::CreateMaybeMessage<::CarrotFileResponse>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 
 // ===================================================================
@@ -281,6 +285,170 @@ class CarrotFileRequest final :
   union { Impl_ _impl_; };
   friend struct ::TableStruct_request_2eproto;
 };
+// -------------------------------------------------------------------
+
+class CarrotFileResponse final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:CarrotFileResponse) */ {
+ public:
+  inline CarrotFileResponse() : CarrotFileResponse(nullptr) {}
+  ~CarrotFileResponse() override;
+  explicit PROTOBUF_CONSTEXPR CarrotFileResponse(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  CarrotFileResponse(const CarrotFileResponse& from);
+  CarrotFileResponse(CarrotFileResponse&& from) noexcept
+    : CarrotFileResponse() {
+    *this = ::std::move(from);
+  }
+
+  inline CarrotFileResponse& operator=(const CarrotFileResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline CarrotFileResponse& operator=(CarrotFileResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const CarrotFileResponse& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const CarrotFileResponse* internal_default_instance() {
+    return reinterpret_cast<const CarrotFileResponse*>(
+               &_CarrotFileResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(CarrotFileResponse& a, CarrotFileResponse& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(CarrotFileResponse* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(CarrotFileResponse* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  CarrotFileResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<CarrotFileResponse>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const CarrotFileResponse& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const CarrotFileResponse& from) {
+    CarrotFileResponse::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(CarrotFileResponse* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "CarrotFileResponse";
+  }
+  protected:
+  explicit CarrotFileResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBufferFieldNumber = 1,
+    kRetValFieldNumber = 2,
+  };
+  // string buffer = 1;
+  void clear_buffer();
+  const std::string& buffer() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_buffer(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_buffer();
+  PROTOBUF_NODISCARD std::string* release_buffer();
+  void set_allocated_buffer(std::string* buffer);
+  private:
+  const std::string& _internal_buffer() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_buffer(const std::string& value);
+  std::string* _internal_mutable_buffer();
+  public:
+
+  // int32 ret_val = 2;
+  void clear_ret_val();
+  int32_t ret_val() const;
+  void set_ret_val(int32_t value);
+  private:
+  int32_t _internal_ret_val() const;
+  void _internal_set_ret_val(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:CarrotFileResponse)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr buffer_;
+    int32_t ret_val_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_request_2eproto;
+};
 // ===================================================================
 
 
@@ -482,9 +650,85 @@ inline void CarrotFileRequest::set_arg_six(int32_t value) {
   // @@protoc_insertion_point(field_set:CarrotFileRequest.arg_six)
 }
 
+// -------------------------------------------------------------------
+
+// CarrotFileResponse
+
+// string buffer = 1;
+inline void CarrotFileResponse::clear_buffer() {
+  _impl_.buffer_.ClearToEmpty();
+}
+inline const std::string& CarrotFileResponse::buffer() const {
+  // @@protoc_insertion_point(field_get:CarrotFileResponse.buffer)
+  return _internal_buffer();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void CarrotFileResponse::set_buffer(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.buffer_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:CarrotFileResponse.buffer)
+}
+inline std::string* CarrotFileResponse::mutable_buffer() {
+  std::string* _s = _internal_mutable_buffer();
+  // @@protoc_insertion_point(field_mutable:CarrotFileResponse.buffer)
+  return _s;
+}
+inline const std::string& CarrotFileResponse::_internal_buffer() const {
+  return _impl_.buffer_.Get();
+}
+inline void CarrotFileResponse::_internal_set_buffer(const std::string& value) {
+  
+  _impl_.buffer_.Set(value, GetArenaForAllocation());
+}
+inline std::string* CarrotFileResponse::_internal_mutable_buffer() {
+  
+  return _impl_.buffer_.Mutable(GetArenaForAllocation());
+}
+inline std::string* CarrotFileResponse::release_buffer() {
+  // @@protoc_insertion_point(field_release:CarrotFileResponse.buffer)
+  return _impl_.buffer_.Release();
+}
+inline void CarrotFileResponse::set_allocated_buffer(std::string* buffer) {
+  if (buffer != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.buffer_.SetAllocated(buffer, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.buffer_.IsDefault()) {
+    _impl_.buffer_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:CarrotFileResponse.buffer)
+}
+
+// int32 ret_val = 2;
+inline void CarrotFileResponse::clear_ret_val() {
+  _impl_.ret_val_ = 0;
+}
+inline int32_t CarrotFileResponse::_internal_ret_val() const {
+  return _impl_.ret_val_;
+}
+inline int32_t CarrotFileResponse::ret_val() const {
+  // @@protoc_insertion_point(field_get:CarrotFileResponse.ret_val)
+  return _internal_ret_val();
+}
+inline void CarrotFileResponse::_internal_set_ret_val(int32_t value) {
+  
+  _impl_.ret_val_ = value;
+}
+inline void CarrotFileResponse::set_ret_val(int32_t value) {
+  _internal_set_ret_val(value);
+  // @@protoc_insertion_point(field_set:CarrotFileResponse.ret_val)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 

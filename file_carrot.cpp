@@ -347,7 +347,6 @@ int main(int argc, char *argv[])
                     regs.orig_rax = -1;
                     cout << n << endl;
                 }
-                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
             outfile << "system call number " << syscall_num
