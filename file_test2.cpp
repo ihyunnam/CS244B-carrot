@@ -4,10 +4,13 @@
 #include <sys/stat.h>
 #include <cstring>
 
+using namespace std;
+
 int main()
 {
-    const char *directory = "cool";
-    const char *filename = "sample.txt";
+    const char *directory = "nice";
+    const char *filename = "awesome.txt";
+    char cwd[1024];
 
     // Create the directory "cool" with read/write/execute permissions for the owner
     if (mkdir(directory, S_IRWXU) == -1)
@@ -22,6 +25,11 @@ int main()
         std::cerr << "Unable to change directory to " << directory << std::endl;
         return 1; // Return an error code
     }
+
+    // Get and print the current working directory
+    // TO-DO: Error handling!
+    getcwd(cwd, sizeof(cwd));
+    std::cout << "Current working directory: " << cwd << std::endl;
 
     // Open the file in output mode (this will create the file if it does not exist)
     int fd = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);

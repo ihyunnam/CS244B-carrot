@@ -547,6 +547,43 @@ int main(int argc, char *argv[])
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
+            else if (syscall_num == SYS_getcwd)
+            {
+                // Trace out size
+                unsigned long size = regs.rsi;
+
+                // Serialize
+                CarrotFileRequest request;
+                request.set_syscall_num(syscall_num);
+                request.set_arg_two(size);
+
+                string serialized_data;
+                request.SerializeToString(&serialized_data);
+
+                // Send to another machine
+                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+
+                // Receive message
+                socklen_t len;
+                len = sizeof(cliaddr); // len is value/result
+                int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                buffer[n] = '\0';
+
+                // Deserialize the message
+                CarrotFileResponse response;
+                serialized_data = buffer;
+                response.ParseFromString(serialized_data);
+                const char *response_buf = response.buffer().c_str();
+                cout << response.buffer() << endl;
+
+                // Fill in buffer
+                // TO-DO: RETURN VALUE
+                regs.rax = reinterpret_cast<uint64_t>(response_buf);
+                regs.orig_rax = -1;
+                write_memory(child_pid, regs.rdi, (void *)response_buf, response.buffer().length());
+                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+            }
+
             outfile << "system call number " << syscall_num
                     << " name " << callname(syscall_num)
                     << " from pid " << child_pid << std::endl;
