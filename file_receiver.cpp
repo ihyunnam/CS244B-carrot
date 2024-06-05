@@ -59,6 +59,7 @@ int main()
     SSL_library_init();
 
     // Receive data indefinitely
+    chdir(SAVED_FOLDER.c_str());
     while (true)
     {
         n = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
@@ -74,7 +75,7 @@ int main()
 
         // Check system call and save!
         if (r_file.syscall_num() == SYS_openat) {
-            int fd = open((SAVED_FOLDER + r_file.buffer().c_str()).c_str(), r_file.arg_three(), r_file.arg_four());
+            int fd = open((r_file.buffer().c_str()), r_file.arg_three(), r_file.arg_four());
 
             CarrotFileResponse r_response;
             r_response.set_return_val(fd);
@@ -96,6 +97,7 @@ int main()
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
         }
 
+        // Handle reading a file
         else if (r_file.syscall_num() == SYS_read) {
             int result = read(r_file.arg_one(), buffer, r_file.arg_three());
             buffer[result] = '\0';
@@ -108,11 +110,24 @@ int main()
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
         }
 
+        // Handle writing a file
         else if (r_file.syscall_num() == SYS_write) {
             int result = write(r_file.arg_one(), r_file.buffer().c_str(), r_file.arg_three());
             CarrotFileResponse r_response;
             r_response.set_return_val(result);
 
+            string serialized_data;
+            r_response.SerializeToString(&serialized_data);
+            sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+        }
+
+        // Handle changing directory
+        else if (r_file.syscall_num() == SYS_chdir) {
+            int result = chdir((r_file.buffer().c_str()));
+
+            // Write response
+            CarrotFileResponse r_response;
+            r_response.set_return_val(result);
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
