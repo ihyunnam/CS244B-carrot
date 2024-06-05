@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <sys/user.h>
-#include "../sysnames.h"
+#include "../helpers/sysnames.h"
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <unistd.h>

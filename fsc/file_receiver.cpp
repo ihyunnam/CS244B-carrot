@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "../sysnames.h"
+#include "../helpers/sysnames.h"
 
 // Code for protobufs
 #include "../protobufs/files/file.pb.h"

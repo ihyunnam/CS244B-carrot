@@ -1,26 +1,49 @@
 # Carrot: A Distributed Interposition Library for Networking and File Systems
 
-Inspired by Parrot, we aim to build an interposition library that captures syscalls and distributes them to different machines. The library will leverage `ptrace` and `seccomp` to capture networking and file system calls. On the networking side, our motivation is to bypass censorship. More broadly, we are creating an almost VPN-like service that can bypass firewalls and access websites that a machine cannot individually access by interposing on `sendto` and `recvfrom` and sending the request to multiple machines. On the file system side, the goal will be to reroute open, write, close, and other syscalls to other machines such that the files don’t even live on the machine. As a result, we can simulate things such as compiling a file “locally” but have the compiler running on a remote machine. The implementation will be done in C++, and our presentation will be primarily demo + design decision oriented (i.e., effects of distributing networking HTTP requests to multiple machines, how we chose which machine to store different remote files on, etc.).
+Inspired by Parrot, we're building Carrot, an interposition library that captures file and networking system calls and distributes them across machines.
 
-## To Run
+## Set-Up
 
-Install `g++` and `make`:
+First, install necessary dependencies:
 ```bash
-sudo apt install g++ make
+sudo apt-get update
+sudo apt install g++ libprotobuf-dev libcurl4-openssl-dev libssl-dev libcrypto++-dev libresolv-dev
 ```
 
-Then run:
+Then, set up the protobufs:
+```bash
+cd protobufs
+protoc -I=. --cpp_out=./messages ./message.proto
+protoc -I=. --cpp_out=./files ./file.proto
+```
+
+Finally, compile all of the files:
 ```bash
 make
-./main <ROLE_PROGRAM>
 ```
 
-### Notes on Protobuf
+## To Run:
 
-First, you need to install the [protobuf compiler](https://grpc.io/docs/protoc-installation/). From there, you can run `protoc` on the `message.proto` file:
+### File System Calls
 
+To interpose on file system calls, look at the folder `fsc`. On one machine, run the receiver:
 ```bash
-protoc -I=. --cpp_out=./messages ./message.proto
+fsc/file_receiver
 ```
 
-Compiling `protobuf.cpp` will allow you test out serializing and deserializing a message.
+On another machine, run the interposition library on top of an executable doing file system calls
+```bash
+fsc/file_carrot fsc/file_test1
+```
+
+### Networking System Calls
+
+To interpose on networking system calls, look at the folder `nsc`. On one machine, run the receiver:
+```bash
+nsc/networking_receiver
+```
+
+On another machine, run the interposition library on top of an executable doing file system calls
+```bash
+nsc/networking_carrot nsc/curl http://www.example.com
+```

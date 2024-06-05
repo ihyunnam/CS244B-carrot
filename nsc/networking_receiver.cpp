@@ -13,7 +13,7 @@
 #include <sstream>
 
 
-#include "../sysnames.h"
+#include "../helpers/sysnames.h"
 
 // Code for protobufs
 #include "../protobufs/messages/message.pb.h"
