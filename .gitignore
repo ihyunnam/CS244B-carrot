@@ -1,4 +1,4 @@
-# Executables
+# Old executables
 myprogram
 receiver
 sender
@@ -6,9 +6,15 @@ intermediary
 main
 protobufs/protobuf
 get_website
+
+# File system executables
 file_carrot
 file_receiver
 file_test_1
+
+# Networking executables
+curl
+networking_carrot
 
 # Other stuff
 output.txt
