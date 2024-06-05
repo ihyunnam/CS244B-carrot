@@ -10,8 +10,8 @@
 #include <openssl/err.h>
 
 // Code for protobufs
-#include "protobufs/messages/message.pb.h"
-#include "protobufs/messages/message.pb.cc"
+#include "../protobufs/messages/message.pb.h"
+#include "../protobufs/messages/message.pb.cc"
 
 #define PORT 12346 // Change the port number here
 #define MAX_BUFFER_SIZE 1024
@@ -134,7 +134,7 @@ int main()
         SSL_free(ssl);
         close(sockfd_send);
         SSL_CTX_free(ssl_ctx);
-        // cout << raw_site << endl;
+        cout << raw_site << endl;
 
         // TODO: Send back to main
         sendto(sockfd, raw_site.c_str(), raw_site.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));

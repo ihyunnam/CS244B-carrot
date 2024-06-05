@@ -7,7 +7,8 @@ CC = g++
 CFLAGS = -Wall -Wextra -std=c++11
 
 # Source files
-SOURCES = intermediary.cpp receiver.cpp sender.cpp main.cpp get_website.cpp
+# SOURCES = intermediary.cpp receiver.cpp sender.cpp main.cpp get_website.cpp
+SOURCES = file_test_1.cpp file_carrot.cpp file_receiver.cpp
 # Executable name
 EXECUTABLES = $(SOURCES:.cpp=)
 

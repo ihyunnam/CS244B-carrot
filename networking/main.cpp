@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <sys/user.h>
-#include "sysnames.h"
+#include "../sysnames.h"
 #include <sys/types.h>
 
 #include <sys/syscall.h>
@@ -20,11 +20,11 @@
 #include <netdb.h>
 
 // Code for protobufs
-#include "protobufs/messages/message.pb.h"
-#include "protobufs/messages/message.pb.cc"
+#include "../protobufs/messages/message.pb.h"
+#include "../protobufs/messages/message.pb.cc"
 
 #define PORT 12346
-#define MAX_BUFFER_SIZE 5012
+#define MAX_BUFFER_SIZE 50120
 using namespace std;
 
 #define NUM_INTERMEDIARIES 1
@@ -201,8 +201,8 @@ int main(int argc, char *argv[])
             if (syscall_num == SYS_sendto)
             {
                 // Read in and check buffer
-                char buffer[1024];
-                for (int i = 0; i < 1024; i += 1)
+                char buffer[MAX_BUFFER_SIZE];
+                for (int i = 0; i < MAX_BUFFER_SIZE; i += 1)
                 {
                     buffer[i] = ptrace(PTRACE_PEEKDATA, child_pid, regs.rsi + i, 0);
                     if (buffer[i] == '\0')
@@ -250,12 +250,12 @@ int main(int argc, char *argv[])
                     sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
                     int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
                     buffer[n] = '\0';
-                    cout << "Pondoc Buffer: " << buffer << endl;
+                    cout << "Pondoc Buffer: " << buffer << " before here!" << endl;
                     // int n = rec
 
                     // // Make child process not sendto (not working)
-                    // regs.orig_rax = -1;
-                    // ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+                    regs.orig_rax = -1;
+                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
 
                     // TODO: recvfrom receiver
                 }
