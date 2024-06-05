@@ -14,10 +14,11 @@ fsc/file_test1
 fsc/file_test2
 
 # Networking executables
-curl
-networking_carrot
+nsc/curl
+nsc/networking_carrot
+nsc/networking_receiver
 
-# Other stuff
+# Miscellany
 output.txt
 .vscode/
 data/
