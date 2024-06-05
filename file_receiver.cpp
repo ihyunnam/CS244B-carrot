@@ -121,6 +121,18 @@ int main()
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
         }
 
+        // Handle creating a directory
+        else if (r_file.syscall_num() == SYS_mkdir) {
+            int result = mkdir(r_file.buffer().c_str(), r_file.arg_two());
+
+            // // Write response
+            CarrotFileResponse r_response;
+            r_response.set_return_val(result);
+            string serialized_data;
+            r_response.SerializeToString(&serialized_data);
+            sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+        }
+
         // Handle changing directory
         else if (r_file.syscall_num() == SYS_chdir) {
             int result = chdir((r_file.buffer().c_str()));
