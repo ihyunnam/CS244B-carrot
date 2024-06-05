@@ -11,11 +11,11 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "sysnames.h"
+#include "../sysnames.h"
 
 // Code for protobufs
-#include "protobufs/files/file.pb.h"
-#include "protobufs/files/file.pb.cc"
+#include "../protobufs/files/file.pb.h"
+#include "../protobufs/files/file.pb.cc"
 
 #define PORT 12346 // Change the port number here
 #define MAX_BUFFER_SIZE 1024
@@ -77,7 +77,8 @@ int main()
         r_file.ParseFromString(buffer);
 
         // Check system call and save!
-        if (r_file.syscall_num() == SYS_openat) {
+        if (r_file.syscall_num() == SYS_openat)
+        {
             int fd = open((r_file.buffer().c_str()), r_file.arg_three(), r_file.arg_four());
 
             CarrotFileResponse r_response;
@@ -89,7 +90,8 @@ int main()
         }
 
         // Handle closing a file
-        else if (r_file.syscall_num() == SYS_close) {
+        else if (r_file.syscall_num() == SYS_close)
+        {
             int result = close(r_file.arg_one());
 
             CarrotFileResponse r_response;
@@ -101,7 +103,8 @@ int main()
         }
 
         // Handle reading a file
-        else if (r_file.syscall_num() == SYS_read) {
+        else if (r_file.syscall_num() == SYS_read)
+        {
             int result = read(r_file.arg_one(), buffer, r_file.arg_three());
             buffer[result] = '\0';
             CarrotFileResponse r_response;
@@ -114,7 +117,8 @@ int main()
         }
 
         // Handle writing a file
-        else if (r_file.syscall_num() == SYS_write) {
+        else if (r_file.syscall_num() == SYS_write)
+        {
             int result = write(r_file.arg_one(), r_file.buffer().c_str(), r_file.arg_three());
             CarrotFileResponse r_response;
             r_response.set_return_val(result);
@@ -125,7 +129,8 @@ int main()
         }
 
         // Handle getting the current directory
-        else if (r_file.syscall_num() == SYS_getcwd) {
+        else if (r_file.syscall_num() == SYS_getcwd)
+        {
             // Get cwd
             char cwd[r_file.arg_two()];
             getcwd(cwd, sizeof(cwd));
@@ -146,7 +151,8 @@ int main()
         }
 
         // Handle creating a directory
-        else if (r_file.syscall_num() == SYS_mkdir) {
+        else if (r_file.syscall_num() == SYS_mkdir)
+        {
             int result = mkdir(r_file.buffer().c_str(), r_file.arg_two());
 
             // // Write response
@@ -158,7 +164,8 @@ int main()
         }
 
         // Handle changing directory
-        else if (r_file.syscall_num() == SYS_chdir) {
+        else if (r_file.syscall_num() == SYS_chdir)
+        {
             int result = chdir((r_file.buffer().c_str()));
 
             // Write response

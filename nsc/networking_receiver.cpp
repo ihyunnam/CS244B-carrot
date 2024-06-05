@@ -13,11 +13,11 @@
 #include <sstream>
 
 
-#include "sysnames.h"
+#include "../sysnames.h"
 
 // Code for protobufs
-#include "protobufs/messages/message.pb.h"
-#include "protobufs/messages/message.pb.cc"
+#include "../protobufs/messages/message.pb.h"
+#include "../protobufs/messages/message.pb.cc"
 
 #define PORT 12346 // Change the port number here
 #define MAX_BUFFER_SIZE 1024
