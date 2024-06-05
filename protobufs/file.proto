@@ -2,7 +2,7 @@ syntax = "proto3";
 
 message CarrotFileRequest {
   int32 syscall_num = 1;
-  string buffer = 2;
+  bytes buffer = 2;
   int32 arg_one = 3;
   int32 arg_two = 4;
   int32 arg_three = 5;

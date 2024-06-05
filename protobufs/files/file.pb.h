@@ -187,7 +187,7 @@ class CarrotFileRequest final :
     kArgFiveFieldNumber = 7,
     kArgSixFieldNumber = 8,
   };
-  // string buffer = 2;
+  // bytes buffer = 2;
   void clear_buffer();
   const std::string& buffer() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -480,7 +480,7 @@ inline void CarrotFileRequest::set_syscall_num(int32_t value) {
   // @@protoc_insertion_point(field_set:CarrotFileRequest.syscall_num)
 }
 
-// string buffer = 2;
+// bytes buffer = 2;
 inline void CarrotFileRequest::clear_buffer() {
   _impl_.buffer_.ClearToEmpty();
 }
@@ -492,7 +492,7 @@ template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
 void CarrotFileRequest::set_buffer(ArgT0&& arg0, ArgT... args) {
  
- _impl_.buffer_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+ _impl_.buffer_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:CarrotFileRequest.buffer)
 }
 inline std::string* CarrotFileRequest::mutable_buffer() {

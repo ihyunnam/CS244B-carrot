@@ -94,7 +94,7 @@ static const ::_pb::Message* const file_default_instances[] = {
 
 const char descriptor_table_protodef_file_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\nfile.proto\"\242\001\n\021CarrotFileRequest\022\023\n\013sy"
-  "scall_num\030\001 \001(\005\022\016\n\006buffer\030\002 \001(\t\022\017\n\007arg_o"
+  "scall_num\030\001 \001(\005\022\016\n\006buffer\030\002 \001(\014\022\017\n\007arg_o"
   "ne\030\003 \001(\005\022\017\n\007arg_two\030\004 \001(\005\022\021\n\targ_three\030\005"
   " \001(\005\022\020\n\010arg_four\030\006 \001(\005\022\020\n\010arg_five\030\007 \001(\005"
   "\022\017\n\007arg_six\030\010 \001(\005\"8\n\022CarrotFileResponse\022"
@@ -224,13 +224,12 @@ const char* CarrotFileRequest::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // string buffer = 2;
+      // bytes buffer = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_buffer();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "CarrotFileRequest.buffer"));
         } else
           goto handle_unusual;
         continue;
@@ -317,13 +316,9 @@ uint8_t* CarrotFileRequest::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_syscall_num(), target);
   }
 
-  // string buffer = 2;
+  // bytes buffer = 2;
   if (!this->_internal_buffer().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_buffer().data(), static_cast<int>(this->_internal_buffer().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "CarrotFileRequest.buffer");
-    target = stream->WriteStringMaybeAliased(
+    target = stream->WriteBytesMaybeAliased(
         2, this->_internal_buffer(), target);
   }
 
@@ -379,10 +374,10 @@ size_t CarrotFileRequest::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string buffer = 2;
+  // bytes buffer = 2;
   if (!this->_internal_buffer().empty()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
         this->_internal_buffer());
   }
 
