@@ -11,6 +11,7 @@ get_website
 file_carrot
 file_receiver
 file_test_1
+file_test2
 
 # Networking executables
 curl

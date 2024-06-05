@@ -56,7 +56,11 @@ int main()
     socklen_t len;
     len = sizeof(cliaddr); // len is value/result
 
-    SSL_library_init();
+    // Set main directory
+    char maindir[1024];
+    chdir(SAVED_FOLDER.c_str());
+    getcwd(maindir, sizeof(maindir));
+    cout << maindir << endl;
 
     // Receive data indefinitely
     while (true)
@@ -74,7 +78,7 @@ int main()
 
         // Check system call and save!
         if (r_file.syscall_num() == SYS_openat) {
-            int fd = open((SAVED_FOLDER + r_file.buffer().c_str()).c_str(), r_file.arg_three(), r_file.arg_four());
+            int fd = open((r_file.buffer().c_str()), r_file.arg_three(), r_file.arg_four());
 
             CarrotFileResponse r_response;
             r_response.set_return_val(fd);
@@ -96,6 +100,7 @@ int main()
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
         }
 
+        // Handle reading a file
         else if (r_file.syscall_num() == SYS_read) {
             int result = read(r_file.arg_one(), buffer, r_file.arg_three());
             buffer[result] = '\0';
@@ -108,11 +113,57 @@ int main()
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
         }
 
+        // Handle writing a file
         else if (r_file.syscall_num() == SYS_write) {
             int result = write(r_file.arg_one(), r_file.buffer().c_str(), r_file.arg_three());
             CarrotFileResponse r_response;
             r_response.set_return_val(result);
 
+            string serialized_data;
+            r_response.SerializeToString(&serialized_data);
+            sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+        }
+
+        // Handle getting the current directory
+        else if (r_file.syscall_num() == SYS_getcwd) {
+            // Get cwd
+            char cwd[r_file.arg_two()];
+            getcwd(cwd, sizeof(cwd));
+
+            // Extract path
+            string remaining_path = string(cwd).substr(string(maindir).length());
+            if (remaining_path[0] == '/')
+            {
+                remaining_path = remaining_path.substr(1);
+            }
+
+            // Write response
+            CarrotFileResponse r_response;
+            r_response.set_buffer(remaining_path);
+            string serialized_data;
+            r_response.SerializeToString(&serialized_data);
+            sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+        }
+
+        // Handle creating a directory
+        else if (r_file.syscall_num() == SYS_mkdir) {
+            int result = mkdir(r_file.buffer().c_str(), r_file.arg_two());
+
+            // // Write response
+            CarrotFileResponse r_response;
+            r_response.set_return_val(result);
+            string serialized_data;
+            r_response.SerializeToString(&serialized_data);
+            sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+        }
+
+        // Handle changing directory
+        else if (r_file.syscall_num() == SYS_chdir) {
+            int result = chdir((r_file.buffer().c_str()));
+
+            // Write response
+            CarrotFileResponse r_response;
+            r_response.set_return_val(result);
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
