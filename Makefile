@@ -7,15 +7,15 @@ CC = g++
 CFLAGS = -Wall -Wextra -std=c++11
 
 # Source files
-SOURCES = intermediary.cpp receiver.cpp sender.cpp main.cpp
-
+# SOURCES = intermediary.cpp receiver.cpp sender.cpp main.cpp get_website.cpp
+SOURCES = file_test_1.cpp file_test2.cpp file_carrot.cpp file_receiver.cpp curl.cpp networking_carrot.cpp networking_receiver.cpp
 # Executable name
 EXECUTABLES = $(SOURCES:.cpp=)
 
 all: $(EXECUTABLES)
 
 %: %.cpp
-	$(CC) $(CFLAGS) $< -o $@ -lprotobuf
+	$(CC) $(CFLAGS) $< -o $@ -lprotobuf -lcurl -lresolv -lssl -lcrypto
 
 # $(EXECUTABLE): $(SOURCES)
 # 	$(CC) $(CFLAGS) $(SOURCES) -o $(EXECUTABLE)
