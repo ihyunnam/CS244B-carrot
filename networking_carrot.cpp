@@ -27,11 +27,11 @@ std::string files[] = {
     "/lib/x86_64-linux-gnu/libm.so.6"};
 
 // Code for protobufs
-#include "protobufs/files/file.pb.h"
-#include "protobufs/files/file.pb.cc"
+#include "protobufs/messages/message.pb.h"
+#include "protobufs/messages/message.pb.cc"
 
 #define PORT 12346
-#define MAX_BUFFER_SIZE 5012
+#define MAX_BUFFER_SIZE 100000
 using namespace std;
 
 #define NUM_INTERMEDIARIES 1
@@ -233,6 +233,8 @@ int main(int argc, char *argv[])
     servaddr_send.sin_addr.s_addr = INADDR_ANY;
     servaddr_send.sin_port = htons(PORT);
 
+    int counter = 0;
+
     // Bind to a socket
     if (bind(sockfd_send, (const struct sockaddr *)&servaddr_send, sizeof(servaddr_send)) < 0)
     {
@@ -327,10 +329,22 @@ int main(int argc, char *argv[])
                     fprintf(stderr, "sin_port %d\n", ntohs(dest_addr.sin_port));
                     fprintf(stderr, "sin_addr %s\n", inet_ntoa(dest_addr.sin_addr));
 
-                    // Send the message?
+                    // Serialize
+                    CarrotMessage request;
+                    request.set_ip_address(ip.c_str());
+                    request.set_port(80);
+                    request.set_message(buffer);
+
+                    string serialized_data;
+                    request.SerializeToString(&serialized_data);
+
+                    // Send to another machine
+                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+
+                    // Reset the process
                     regs.orig_rax = SYS_getpid;
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-                    sendto(sockfd_send, buffer, count, 0, (const struct sockaddr *)&dest_addr, sizeof(dest_addr));
+                    counter += 1;
                 }
 
                 // Else, maybe we interpose here?
@@ -338,187 +352,41 @@ int main(int argc, char *argv[])
                 {
                     std::cout << "The word 'GET' is not in the buffer.\n";
                 }
-                // cout << "Hi" << endl;
             }
 
             else if (syscall_num == SYS_recvfrom)
             {
-                cout << "Receiving?" << endl;
+                cout << counter << endl;
+                if (counter > 0)
+                {
+                    // Update the counter and receive the message
+                    counter -= 1;
+                    socklen_t len;
+                    len = sizeof(cliaddr); // len is value/result
+                    ssize_t n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                    buffer[n] = '\0';
+
+                    cout << "Size from interposition: " << n << endl;
+
+                    // Set appropriate values
+                    regs.rax = n;
+                    regs.orig_rax = -1;
+
+                    for (int i = 0; i < n; i += sizeof(long))
+                    {
+                        long data;
+                        memcpy(&data, buffer + i, sizeof(long));
+                        ptrace(PTRACE_POKEDATA, child_pid, regs.rsi + i, data);
+                    }
+
+                    // write_memory(child_pid, regs.rsi, (void *)buffer, strlen(buffer));
+                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+                }
+                else
+                {
+                    cout << "Nuull call?" << endl;
+                }
             }
-
-            // if (syscall_num == SYS_open || syscall_num == SYS_openat)
-            // {
-            //     // Find file name
-            //     unsigned long filename_addr = regs.rsi; // rsi contains the second argument (filename) for openat, rdi for openat
-            //     std::string filename = readStringFromProcess(child_pid, filename_addr);
-            //     std::cout << "Open syscall called with file: " << filename << std::endl;
-
-            //     // Check if file is something that isn't usually opened
-            //     bool found = find(begin(files), std::end(files), filename) != std::end(files);
-            //     if (!found)
-            //     {
-            //         // Find flags and mode
-            //         unsigned long dirfd = regs.rdi; // rdi contains the first argument (dirfd)
-            //         unsigned long flags = regs.rdx; // rdx contains the third argument (flags)
-            //         unsigned long mode = regs.r10;  // r10 contains the fourth argument (mode)
-
-            //         // Serialize
-            //         CarrotFileRequest request;
-            //         request.set_syscall_num(syscall_num);
-            //         request.set_buffer(filename);
-            //         request.set_arg_three(flags);
-            //         request.set_arg_four(mode);
-
-            //         string serialized_data;
-            //         request.SerializeToString(&serialized_data);
-
-            //         // Send to another machine
-            //         sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
-            //         // cout << "Sending message" << endl;
-
-            //         // Receive message
-            //         socklen_t len;
-            //         len = sizeof(cliaddr); // len is value/result
-            //         int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-            //         buffer[n] = '\0';
-
-            //         CarrotFileResponse response;
-            //         serialized_data = buffer;
-            //         response.ParseFromString(serialized_data);
-
-            //         // Change return value
-            //         if (response.return_val() != -1)
-            //         {
-            //             regs.rax = response.return_val();
-            //             regs.orig_rax = -1;
-            //         }
-            //         ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-            //         // regs.rax = stoi(buffer);
-            //         // regs.orig_rax = -1;
-            //         // ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-            //     }
-            // }
-
-            // // Close the file
-            // else if (syscall_num == SYS_close)
-            // {
-            //     unsigned long fd = regs.rdi; // rdi contains the first argument (dirfd)
-
-            //     // Serialize
-            //     CarrotFileRequest request;
-            //     request.set_syscall_num(syscall_num);
-            //     request.set_arg_one(fd);
-
-            //     string serialized_data;
-            //     request.SerializeToString(&serialized_data);
-
-            //     // Send to another machine
-            //     sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
-
-            //     // Receive message
-            //     socklen_t len;
-            //     len = sizeof(cliaddr); // len is value/result
-            //     int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-            //     buffer[n] = '\0';
-
-            //     CarrotFileResponse response;
-            //     serialized_data = buffer;
-            //     response.ParseFromString(serialized_data);
-
-            //     // Change return value
-            //     if (response.return_val() != -1)
-            //     {
-            //         regs.rax = response.return_val();
-            //         regs.orig_rax = -1;
-            //     }
-            //     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-            // }
-
-            // // Read from file
-            // else if (syscall_num == SYS_read)
-            // {
-            //     unsigned long fd = regs.rdi;          // rdi contains the first argument (dirfd)
-            //     unsigned long buffer_addr = regs.rsi; // rdi contains the first argument (dirfd)
-            //     unsigned long count = regs.rdx;       // rdx contains the third argument (count)
-
-            //     // Serialize
-            //     CarrotFileRequest request;
-            //     request.set_syscall_num(syscall_num);
-            //     request.set_arg_one(fd);
-            //     request.set_arg_three(count);
-
-            //     string serialized_data;
-            //     request.SerializeToString(&serialized_data);
-
-            //     // Send to another machine
-            //     sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
-
-            //     // Receive message
-            //     socklen_t len;
-            //     len = sizeof(cliaddr); // len is value/result
-            //     int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-            //     buffer[n] = '\0';
-
-            //     CarrotFileResponse response;
-            //     serialized_data = buffer;
-            //     response.ParseFromString(serialized_data);
-            //     const char *response_buf = response.buffer().c_str();
-
-            //     // Change return value
-            //     if (response.return_val() != -1)
-            //     {
-            //         regs.rax = response.return_val();
-
-            //         write_memory(child_pid, regs.rsi, (void *)response_buf, response.return_val());
-
-            //         regs.orig_rax = -1;
-            //     }
-            //     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-            // }
-
-            // // Write from file
-            // else if (syscall_num == SYS_write)
-            // {
-            //     unsigned long fd = regs.rdi;          // rdi contains the first argument (dirfd)
-            //     unsigned long buffer_addr = regs.rsi; // rdi contains the first argument (dirfd)
-            //     unsigned long count = regs.rdx;       // rdx contains the third argument (count)
-
-            //     read_memory(child_pid, buffer_addr, buffer, count);
-
-            //     std::string data = buffer;
-
-            //     // Serialize
-            //     CarrotFileRequest request;
-            //     request.set_syscall_num(syscall_num);
-            //     request.set_arg_one(fd);
-            //     request.set_buffer(data);
-            //     request.set_arg_three(count);
-
-            //     string serialized_data;
-            //     request.SerializeToString(&serialized_data);
-
-            //     // Send to another machine
-            //     sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
-
-            //     // Receive message
-            //     socklen_t len;
-            //     len = sizeof(cliaddr); // len is value/result
-            //     int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-            //     buffer[n] = '\0';
-
-            //     CarrotFileResponse response;
-            //     serialized_data = buffer;
-            //     response.ParseFromString(serialized_data);
-            //     const char *response_buf = response.buffer().c_str();
-
-            //     // Change return value
-            //     if (response.return_val() != -1)
-            //     {
-            //         regs.rax = response.return_val();
-            //         regs.orig_rax = -1;
-            //     }
-            //     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-            // }
 
             outfile << "system call number " << syscall_num
                     << " name " << callname(syscall_num)

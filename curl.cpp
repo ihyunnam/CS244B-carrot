@@ -9,7 +9,8 @@
 #include <unistd.h>
 #include <netdb.h>
 
-#define MAX_BUFFER_SIZE 1024
+#define PORT 12337
+#define MAX_BUFFER_SIZE 100000
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -19,6 +20,9 @@ int main(int argc, char *argv[])
         std::cerr << "Usage: " << argv[0] << " <URL>\n";
         return 1;
     }
+
+    sockaddr_in servaddr;
+    memset(&servaddr, 0, sizeof(servaddr));
 
     // Parse the URL to extract the host and path
     std::string url(argv[1]);
@@ -51,6 +55,19 @@ int main(int argc, char *argv[])
     {
         perror("Error creating socket");
         return 1;
+    }
+
+    // Filling server information
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_port = htons(PORT); // Set the port number here
+
+    // Bind the socket with the server address
+    if (bind(sockfd, reinterpret_cast<const sockaddr *>(&servaddr), sizeof(servaddr)) < 0)
+    {
+        std::cerr << "Binding failed" << std::endl;
+        close(sockfd);
+        return -1;
     }
 
     // Resolve the host
@@ -90,10 +107,9 @@ int main(int argc, char *argv[])
     // Receive the response
     char buffer[MAX_BUFFER_SIZE];
     int bytes_received;
-    cout << "Thought to receive" << endl;
-    while ((bytes_received = recv(sockfd, buffer, MAX_BUFFER_SIZE - 1, 0)) > 0)
+    if ((bytes_received = recv(sockfd, buffer, MAX_BUFFER_SIZE - 1, 0)) > 0)
     {
-        cout << "Hey there" << endl;
+        cout << bytes_received << endl;
         buffer[bytes_received] = '\0'; // Null-terminate the received data
         std::cout << buffer;           // Print the response
     }
