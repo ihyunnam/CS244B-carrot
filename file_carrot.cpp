@@ -18,6 +18,140 @@
 #include <cerrno>
 #include <algorithm>
 #include <fcntl.h>
+#include <json.hpp>
+
+/* JSON UTIL FUNCTIONS */
+using json = nlohmann::json;
+
+class JSONFileManager {
+private:
+    std::string filename;
+    json data;
+
+    // Function to read a JSON file and return its content as a json object
+    void readJSONFile() {
+        std::ifstream file(filename);
+        file >> data;
+        file.close();
+    }
+
+    // Function to write a json object to a JSON file
+    void writeJSONFile() {
+        std::ofstream file(filename);
+        file << std::setw(4) << data << std::endl;
+        file.close();
+    }
+
+public:
+    JSONFileManager(const std::string& filename) : filename(filename) {
+        readJSONFile();
+    }
+
+    // Function to edit the contents of a specific key
+    void editKey(const std::string& key, const std::vector<std::tuple<std::string, int>>& new_values) {
+        data[key] = new_values;
+        writeJSONFile();
+    }
+};
+
+// Hashing Libs
+#include <openssl/evp.h>
+#include <openssl/sha.h>
+#include <sstream>
+#include <iomanip>
+#include <map>
+
+/* BEGIN HASH UTIL */
+
+// Helper function to compute SHA-256 hash
+std::string sha256(const std::string &input) {
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+    if(mdctx == NULL) {
+        throw std::runtime_error("EVP_MD_CTX_new failed");
+    }
+
+    if(1 != EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL)) {
+        EVP_MD_CTX_free(mdctx);
+        throw std::runtime_error("EVP_DigestInit_ex failed");
+    }
+
+    if(1 != EVP_DigestUpdate(mdctx, input.c_str(), input.size())) {
+        EVP_MD_CTX_free(mdctx);
+        throw std::runtime_error("EVP_DigestUpdate failed");
+    }
+
+    if(1 != EVP_DigestFinal_ex(mdctx, hash, NULL)) {
+        EVP_MD_CTX_free(mdctx);
+        throw std::runtime_error("EVP_DigestFinal_ex failed");
+    }
+
+    EVP_MD_CTX_free(mdctx);
+
+    std::stringstream ss;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+    }
+    return ss.str();
+}
+
+class ConsistentHashing {
+private:
+    std::map<std::string, std::string> ring;
+
+public:
+    void addNode(const std::string &node) {
+        std::string hash = sha256(node);
+        ring[hash] = node;
+    }
+
+    void removeNode(const std::string &node) {
+        std::string hash = sha256(node);
+        ring.erase(hash);
+    }
+
+    std::string getNode(const std::string &key) {
+        if (ring.empty()) return "";
+
+        std::string hash = sha256(key);
+        auto it = ring.lower_bound(hash);
+        if (it == ring.end()) {
+            it = ring.begin();
+        }
+        return it->second;
+    }
+
+    std::vector<std::string> getClosestNodes(const std::string &key) {
+        std::vector<std::string> closestNodes;
+        if (ring.empty()) return closestNodes;
+
+        std::string hash = sha256(key);
+        auto it = ring.lower_bound(hash);
+
+        if (it == ring.end()) {
+            it = ring.begin();
+        }
+
+        closestNodes.push_back(it->second);
+
+        auto nextIt = std::next(it);
+        if (nextIt == ring.end()) {
+            nextIt = ring.begin();
+        }
+
+        closestNodes.push_back(nextIt->second);
+
+        return closestNodes;
+    }
+
+    void printRing() {
+        for (const auto &pair : ring) {
+            std::cout << pair.first << " -> " << pair.second << std::endl;
+        }
+    }
+};
+
+/* END HASH UTIL */
 
 std::string files[] = {
     "/etc/ld.so.cache",
