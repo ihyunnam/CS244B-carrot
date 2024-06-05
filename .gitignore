@@ -8,10 +8,10 @@ protobufs/protobuf
 get_website
 
 # File system executables
-file_carrot
-file_receiver
-file_test_1
-file_test2
+fsc/file_carrot
+fsc/file_receiver
+fsc/file_test1
+fsc/file_test2
 
 # Networking executables
 curl
