@@ -56,10 +56,13 @@ int main()
     socklen_t len;
     len = sizeof(cliaddr); // len is value/result
 
-    SSL_library_init();
+    // Set main directory
+    char maindir[1024];
+    chdir(SAVED_FOLDER.c_str());
+    getcwd(maindir, sizeof(maindir));
+    cout << maindir << endl;
 
     // Receive data indefinitely
-    chdir(SAVED_FOLDER.c_str());
     while (true)
     {
         n = recvfrom(sockfd, buffer, MAX_BUFFER_SIZE, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
@@ -116,6 +119,27 @@ int main()
             CarrotFileResponse r_response;
             r_response.set_return_val(result);
 
+            string serialized_data;
+            r_response.SerializeToString(&serialized_data);
+            sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
+        }
+
+        // Handle getting the current directory
+        else if (r_file.syscall_num() == SYS_getcwd) {
+            // Get cwd
+            char cwd[r_file.arg_two()];
+            getcwd(cwd, sizeof(cwd));
+
+            // Extract path
+            string remaining_path = string(cwd).substr(string(maindir).length());
+            if (remaining_path[0] == '/')
+            {
+                remaining_path = remaining_path.substr(1);
+            }
+
+            // Write response
+            CarrotFileResponse r_response;
+            r_response.set_buffer(remaining_path);
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
