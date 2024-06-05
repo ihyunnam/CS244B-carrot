@@ -6,6 +6,9 @@ intermediary
 main
 protobufs/protobuf
 get_website
+file_carrot
+file_receiver
+file_test_1
 
 # Other stuff
 output.txt

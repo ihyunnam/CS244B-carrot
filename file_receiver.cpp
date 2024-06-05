@@ -74,7 +74,7 @@ int main()
 
         // Check system call and save!
         if (r_file.syscall_num() == SYS_openat) {
-            int fd = open((SAVED_FOLDER + r_file.buffer()).c_str(), r_file.arg_three(), r_file.arg_four());
+            int fd = open((SAVED_FOLDER + r_file.buffer().c_str()).c_str(), r_file.arg_three(), r_file.arg_four());
 
             CarrotFileResponse r_response;
             r_response.set_return_val(fd);
