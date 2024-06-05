@@ -38,7 +38,7 @@ using namespace std;
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     // "34.82.207.241"};
-    "34.121.111.236"};
+    "34.41.143.79"};
 
 bool isBufferNonEmpty(const char buffer[])
 {
@@ -115,24 +115,28 @@ string urlToIpAddress(const string &url)
 }
 
 // Function to write memory to /proc/[pid]/mem
-ssize_t write_memory(pid_t pid, unsigned long addr, void *vptr, size_t len) {
+ssize_t write_memory(pid_t pid, unsigned long addr, void *vptr, size_t len)
+{
     char mem_path[256];
     snprintf(mem_path, sizeof(mem_path), "/proc/%d/mem", pid);
 
     int fd = open(mem_path, O_WRONLY);
-    if (fd == -1) {
+    if (fd == -1)
+    {
         perror("open");
         return -1;
     }
 
-    if (lseek(fd, addr, SEEK_SET) == -1) {
+    if (lseek(fd, addr, SEEK_SET) == -1)
+    {
         perror("lseek");
         close(fd);
         return -1;
     }
 
     ssize_t n = write(fd, vptr, len);
-    if (n == -1) {
+    if (n == -1)
+    {
         perror("write");
     }
 
@@ -141,24 +145,28 @@ ssize_t write_memory(pid_t pid, unsigned long addr, void *vptr, size_t len) {
 }
 
 // Function to read memory from /proc/[pid]/mem
-ssize_t read_memory(pid_t pid, unsigned long addr, void *vptr, size_t len) {
+ssize_t read_memory(pid_t pid, unsigned long addr, void *vptr, size_t len)
+{
     char mem_path[256];
     snprintf(mem_path, sizeof(mem_path), "/proc/%d/mem", pid);
 
     int fd = open(mem_path, O_RDONLY);
-    if (fd == -1) {
+    if (fd == -1)
+    {
         perror("open");
         return -1;
     }
 
-    if (lseek(fd, addr, SEEK_SET) == -1) {
+    if (lseek(fd, addr, SEEK_SET) == -1)
+    {
         perror("lseek");
         close(fd);
         return -1;
     }
 
     ssize_t n = read(fd, vptr, len);
-    if (n == -1) {
+    if (n == -1)
+    {
         perror("read");
     }
 
@@ -317,6 +325,7 @@ int main(int argc, char *argv[])
 
                     // Send to another machine
                     sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                    // cout << "Sending message" << endl;
 
                     // Receive message
                     socklen_t len;
@@ -377,10 +386,11 @@ int main(int argc, char *argv[])
             }
 
             // Read from file
-            else if (syscall_num == SYS_read) {
-                unsigned long fd = regs.rdi; // rdi contains the first argument (dirfd)
+            else if (syscall_num == SYS_read)
+            {
+                unsigned long fd = regs.rdi;          // rdi contains the first argument (dirfd)
                 unsigned long buffer_addr = regs.rsi; // rdi contains the first argument (dirfd)
-                unsigned long count = regs.rdx; // rdx contains the third argument (count)
+                unsigned long count = regs.rdx;       // rdx contains the third argument (count)
 
                 // Serialize
                 CarrotFileRequest request;
@@ -403,14 +413,14 @@ int main(int argc, char *argv[])
                 CarrotFileResponse response;
                 serialized_data = buffer;
                 response.ParseFromString(serialized_data);
-                const char* response_buf = response.buffer().c_str();
+                const char *response_buf = response.buffer().c_str();
 
                 // Change return value
                 if (response.return_val() != -1)
                 {
                     regs.rax = response.return_val();
 
-                    write_memory(child_pid, regs.rsi, (void*)response_buf, response.return_val());
+                    write_memory(child_pid, regs.rsi, (void *)response_buf, response.return_val());
 
                     regs.orig_rax = -1;
                 }
@@ -418,10 +428,11 @@ int main(int argc, char *argv[])
             }
 
             // Write from file
-            else if (syscall_num == SYS_write) {
-                unsigned long fd = regs.rdi; // rdi contains the first argument (dirfd)
+            else if (syscall_num == SYS_write)
+            {
+                unsigned long fd = regs.rdi;          // rdi contains the first argument (dirfd)
                 unsigned long buffer_addr = regs.rsi; // rdi contains the first argument (dirfd)
-                unsigned long count = regs.rdx; // rdx contains the third argument (count)
+                unsigned long count = regs.rdx;       // rdx contains the third argument (count)
 
                 read_memory(child_pid, buffer_addr, buffer, count);
 
@@ -449,7 +460,7 @@ int main(int argc, char *argv[])
                 CarrotFileResponse response;
                 serialized_data = buffer;
                 response.ParseFromString(serialized_data);
-                const char* response_buf = response.buffer().c_str();
+                const char *response_buf = response.buffer().c_str();
 
                 // Change return value
                 if (response.return_val() != -1)
@@ -459,11 +470,10 @@ int main(int argc, char *argv[])
                 }
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
-            
 
-            cout << "system call number " << syscall_num
-                 << " name " << callname(syscall_num)
-                 << " from pid " << child_pid << std::endl;
+            outfile << "system call number " << syscall_num
+                    << " name " << callname(syscall_num)
+                    << " from pid " << child_pid << std::endl;
         }
         outfile.close();
     }

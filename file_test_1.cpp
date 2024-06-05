@@ -5,7 +5,7 @@
 
 int main()
 {
-    const char *filename = "test.txt";
+    const char *filename = "nice.txt";
 
     // Open the file in output mode (this will create the file if it does not exist)
     int fd = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -15,9 +15,7 @@ int main()
     char buffer[1024];
 
     int resp = read(fd, buffer, 1024);
-    resp = write(fd, "doodle", 5);
-    std::cout << buffer << resp << std::endl;
-
+    resp = write(fd, "Chris Pondoc", 8);
 
     // Check if the file was successfully opened
     if (fd == -1)
