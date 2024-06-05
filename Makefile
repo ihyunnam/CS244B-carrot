@@ -7,7 +7,8 @@ CC = g++
 CFLAGS = -Wall -Wextra -std=c++11
 
 # Source files
-SOURCES = fsc/file_test1.cpp fsc/file_test2.cpp fsc/file_carrot.cpp fsc/file_receiver.cpp curl.cpp networking_carrot.cpp networking_receiver.cpp
+SOURCES = fsc/file_test1.cpp fsc/file_test2.cpp fsc/file_carrot.cpp fsc/file_receiver.cpp nsc/curl.cpp nsc/networking_carrot.cpp nsc/networking_receiver.cpp
+
 # Executable name
 EXECUTABLES = $(SOURCES:.cpp=)
 

@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <sys/user.h>
-#include "sysnames.h"
+#include "../sysnames.h"
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -27,8 +27,8 @@ std::string files[] = {
     "/lib/x86_64-linux-gnu/libm.so.6"};
 
 // Code for protobufs
-#include "protobufs/messages/message.pb.h"
-#include "protobufs/messages/message.pb.cc"
+#include "../protobufs/messages/message.pb.h"
+#include "../protobufs/messages/message.pb.cc"
 
 #define PORT 12346
 #define MAX_BUFFER_SIZE 100000
