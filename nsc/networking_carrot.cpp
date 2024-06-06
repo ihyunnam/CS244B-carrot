@@ -32,13 +32,20 @@ std::string files[] = {
 
 #define PORT 12346
 #define MAX_BUFFER_SIZE 100000
+bool received = false;
 using namespace std;
+
+/* This code assumes that the sender knows and can directly send requests to
+   multiple machines inside the firewall that can access the requested website.
+   The sender uses the resource that arrives first.
+*/
 
 #define NUM_INTERMEDIARIES 1
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     // "34.82.207.241"};
     "34.41.143.79"};
+// TODO: replace these with real IPs
 
 bool isBufferNonEmpty(const char buffer[])
 {
@@ -338,8 +345,10 @@ int main(int argc, char *argv[])
                     string serialized_data;
                     request.SerializeToString(&serialized_data);
 
-                    // Send to another machine
-                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                    // Send to all intermediaries in a loop
+                    for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
+                        sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[i], sizeof(intermediaries[i]));
+                    }
 
                     // Reset the process
                     regs.orig_rax = SYS_getpid;
@@ -354,8 +363,9 @@ int main(int argc, char *argv[])
                 }
             }
 
-            else if (syscall_num == SYS_recvfrom)
+            else if (syscall_num == SYS_recvfrom && !received)
             {
+                received = true;
                 cout << counter << endl;
                 if (counter > 0)
                 {
@@ -381,6 +391,9 @@ int main(int argc, char *argv[])
 
                     // write_memory(child_pid, regs.rsi, (void *)buffer, strlen(buffer));
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+
+                    // Close socket after receiving first message
+                    close(sockfd_send);
                 }
                 else
                 {
