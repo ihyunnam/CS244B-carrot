@@ -58,8 +58,11 @@ system_clock::time_point get_current_time()
 #define NUM_INTERMEDIARIES 1
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
-    "34.82.207.241",
-    "34.41.143.79"};
+    "104.154.255.113", // Ihyun 1
+    "34.31.215.63", // Ihyun 2
+    "34.69.125.94", // Kamyar 1
+    "34.121.111.236" // Kamyar 2
+};
 // TODO: replace these with real IPs
 
 bool isBufferNonEmpty(const char buffer[])
