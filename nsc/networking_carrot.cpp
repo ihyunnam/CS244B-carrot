@@ -40,10 +40,25 @@ using namespace std;
    The sender uses the resource that arrives first.
 */
 
+void print_time()
+{
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::cout << std::ctime(&now_c);
+}
+
+/*
+ * Helper utility to get the current time
+ */
+system_clock::time_point get_current_time()
+{
+    return std::chrono::system_clock::now();
+}
+
 #define NUM_INTERMEDIARIES 1
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
-    // "34.82.207.241"};
+    "34.82.207.241",
     "34.41.143.79"};
 // TODO: replace these with real IPs
 
@@ -344,7 +359,7 @@ int main(int argc, char *argv[])
 
                     string serialized_data;
                     request.SerializeToString(&serialized_data);
-
+                    auto start_time = get_current_time();
                     // Send to all intermediaries in a loop
                     for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
                         sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[i], sizeof(intermediaries[i]));
@@ -369,6 +384,9 @@ int main(int argc, char *argv[])
                 cout << counter << endl;
                 if (counter > 0)
                 {
+                    auto end_time = get_current_time();
+                    duration<double> time_diff = end_time - start_time;
+                    cout << "End to end time: " << time_diff.count() << " seconds" << endl;
                     // Update the counter and receive the message
                     counter -= 1;
                     socklen_t len;
