@@ -362,6 +362,27 @@ inline void CarrotMessage::set_allocated_message(std::string* message) {
   // @@protoc_insertion_point(field_set_allocated:CarrotMessage.message)
 }
 
+// repeated string sender_addresses = 4;
+inline void CarrotMessage::add_sender_addr(const std::string& address) {
+    // TODO: code. Add a new address to sender_addresses
+}
+
+void CarrotMessage::pop_sender_addr(int index) {
+std::string last_address = sender_addresses(sender_addresses_size() - 1);
+
+    // Delete the last sender address i.e. delete my address before forwarding to previous intermediary
+    std::vector<std::string> temp_addresses(sender_addresses().begin(), sender_addresses().end());
+    temp_addresses.pop_back();
+    
+    // Clear the original repeated field and re-add elements from the temporary vector
+    clear_sender_addresses();
+    for (const auto& addr : temp_addresses) {
+        add_sender_addresses(addr);
+    }
+    return last_address;
+}
+
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
