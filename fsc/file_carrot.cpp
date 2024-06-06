@@ -18,7 +18,7 @@
 #include <cerrno>
 #include <algorithm>
 #include <fcntl.h>
-#include <json.hpp>
+#include "json.hpp"
 
 /* JSON UTIL FUNCTIONS */
 using json = nlohmann::json;
@@ -51,6 +51,15 @@ public:
     void editKey(const std::string& key, const std::vector<std::tuple<std::string, int>>& new_values) {
         data[key] = new_values;
         writeJSONFile();
+    }
+
+    // Function to get the values associated with a specific key
+    json getKey(const std::string& key) const {
+        if (data.contains(key)) {
+            return data.at(key);
+        } else {
+            throw std::runtime_error("Key not found");
+        }
     }
 };
 
@@ -111,6 +120,7 @@ public:
     }
 
     std::string getNode(const std::string &key) {
+        /* Gets exact node */
         if (ring.empty()) return "";
 
         std::string hash = sha256(key);
@@ -132,14 +142,14 @@ public:
             it = ring.begin();
         }
 
-        closestNodes.push_back(it->second);
-
-        auto nextIt = std::next(it);
-        if (nextIt == ring.end()) {
-            nextIt = ring.begin();
+        // Currently getting 3 closest nodes
+        for (int i = 0; i < 3; ++i) {
+            closestNodes.push_back(it->second);
+            ++it;
+            if (it == ring.end()) {
+                it = ring.begin();
+            }
         }
-
-        closestNodes.push_back(nextIt->second);
 
         return closestNodes;
     }
@@ -173,6 +183,15 @@ struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     // "34.82.207.241"};
     "34.41.143.79"};
+
+int findIpIndex(const char* target) {
+    for (int i = 0; i < NUM_INTERMEDIARIES; ++i) {
+        if (strcmp(ip_addresses[i], target) == 0) {
+            return i;  // Found the target string at index i
+        }
+    }
+    return -1;  // Target string not found
+}
 
 bool isBufferNonEmpty(const char buffer[])
 {
@@ -341,6 +360,9 @@ std::string readStringFromProcess(pid_t pid, unsigned long addr)
 
 int main(int argc, char *argv[])
 {
+    ConsistentHashing ch;
+    JSONFileManager jsonManager("fd_info.json");
+
     // Set up intermediaries
     for (int i = 0; i < NUM_INTERMEDIARIES; ++i)
     {
@@ -351,7 +373,12 @@ int main(int argc, char *argv[])
             cerr << "Invalid address: " << ip_addresses[i] << endl;
             return -1;
         }
+
+        // Add to hash table
+        ch.addNode(ip_addresses[i]);
     }
+
+    ch.printRing();
 
     int sockfd_send;
     struct sockaddr_in servaddr_send, cliaddr;
@@ -447,6 +474,9 @@ int main(int argc, char *argv[])
                     unsigned long flags = regs.rdx; // rdx contains the third argument (flags)
                     unsigned long mode = regs.r10;  // r10 contains the fourth argument (mode)
 
+                    string node_ip = ch.getNode(filename);
+                    int ip_index = findIpIndex(node_ip.c_str());
+
                     // Serialize
                     CarrotFileRequest request;
                     request.set_syscall_num(syscall_num);
@@ -458,7 +488,7 @@ int main(int argc, char *argv[])
                     request.SerializeToString(&serialized_data);
 
                     // Send to another machine
-                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[ip_index], sizeof(intermediaries[ip_index]));
                     // cout << "Sending message" << endl;
 
                     // Receive message
@@ -476,6 +506,9 @@ int main(int argc, char *argv[])
                     {
                         regs.rax = response.return_val();
                         regs.orig_rax = -1;
+
+                        vector<tuple<string, int>> info = {{node_ip, response.return_val()}};
+                        jsonManager.editKey(to_string(response.return_val()), info);
                     }
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                     // regs.rax = stoi(buffer);
@@ -489,6 +522,9 @@ int main(int argc, char *argv[])
             {
                 unsigned long fd = regs.rdi; // rdi contains the first argument (dirfd)
 
+                string node_ip = jsonManager.getKey(to_string(fd))[0][0];
+                int ip_index = findIpIndex(node_ip.c_str());
+
                 // Serialize
                 CarrotFileRequest request;
                 request.set_syscall_num(syscall_num);
@@ -498,7 +534,7 @@ int main(int argc, char *argv[])
                 request.SerializeToString(&serialized_data);
 
                 // Send to another machine
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[ip_index], sizeof(intermediaries[ip_index]));
 
                 // Receive message
                 socklen_t len;
@@ -523,8 +559,11 @@ int main(int argc, char *argv[])
             else if (syscall_num == SYS_read)
             {
                 unsigned long fd = regs.rdi;          // rdi contains the first argument (dirfd)
-                unsigned long buffer_addr = regs.rsi; // rdi contains the first argument (dirfd)
+                unsigned long buffer_addr = regs.rsi; // rsi contains the second argument (buf)
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
+
+                string node_ip = jsonManager.getKey(to_string(fd))[0][0];
+                int ip_index = findIpIndex(node_ip.c_str());
 
                 // Serialize
                 CarrotFileRequest request;
@@ -536,7 +575,7 @@ int main(int argc, char *argv[])
                 request.SerializeToString(&serialized_data);
 
                 // Send to another machine
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[ip_index], sizeof(intermediaries[ip_index]));
 
                 // Receive message
                 socklen_t len;
@@ -567,6 +606,9 @@ int main(int argc, char *argv[])
                 unsigned long fd = regs.rdi;          // rdi contains the first argument (dirfd)
                 unsigned long buffer_addr = regs.rsi; // rdi contains the first argument (dirfd)
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
+                
+                string node_ip = jsonManager.getKey(to_string(fd))[0][0];
+                int ip_index = findIpIndex(node_ip.c_str());
 
                 read_memory(child_pid, buffer_addr, buffer, count);
 
@@ -583,7 +625,7 @@ int main(int argc, char *argv[])
                 request.SerializeToString(&serialized_data);
 
                 // Send to another machine
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[ip_index], sizeof(intermediaries[ip_index]));
 
                 // Receive message
                 socklen_t len;
