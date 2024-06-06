@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <cstring>
 #include <netdb.h>
 #include <cerrno>
@@ -58,7 +59,7 @@ public:
         if (data.contains(key)) {
             return data.at(key);
         } else {
-            throw std::runtime_error("Key not found");
+            return -1;
         }
     }
 };
@@ -191,6 +192,14 @@ int findIpIndex(const char* target) {
         }
     }
     return -1;  // Target string not found
+}
+
+string getAbsolutePath(const string& path) {
+    try {
+        return filesystem::absolute(path).string();
+    } catch (const filesystem::filesystem_error& e) {
+        throw runtime_error(e.what());
+    }
 }
 
 bool isBufferNonEmpty(const char buffer[])
@@ -362,6 +371,7 @@ int main(int argc, char *argv[])
 {
     ConsistentHashing ch;
     JSONFileManager jsonManager("fd_info.json");
+    JSONFileManager pathToFd("path_fd_map.json");
 
     // Set up intermediaries
     for (int i = 0; i < NUM_INTERMEDIARIES; ++i)
@@ -474,7 +484,12 @@ int main(int argc, char *argv[])
                     unsigned long flags = regs.rdx; // rdx contains the third argument (flags)
                     unsigned long mode = regs.r10;  // r10 contains the fourth argument (mode)
 
-                    string node_ip = ch.getNode(filename);
+                    string node_ip;
+                    if (pathToFd.getKey(filename) == -1) {
+                        node_ip = ch.getNode(filename);
+                    } else {
+                        node_ip = jsonManager.getKey(to_string(pathToFd.getKey(filename)))[0][0];
+                    }
                     int ip_index = findIpIndex(node_ip.c_str());
 
                     // Serialize
@@ -558,7 +573,7 @@ int main(int argc, char *argv[])
             // Read from file
             else if (syscall_num == SYS_read)
             {
-                unsigned long fd = regs.rdi;          // rdi contains the first argument (dirfd)
+                unsigned long fd = regs.rdi;          // rdi contains the first argument (fd)
                 unsigned long buffer_addr = regs.rsi; // rsi contains the second argument (buf)
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
 
@@ -603,8 +618,8 @@ int main(int argc, char *argv[])
             // Write from file
             else if (syscall_num == SYS_write)
             {
-                unsigned long fd = regs.rdi;          // rdi contains the first argument (dirfd)
-                unsigned long buffer_addr = regs.rsi; // rdi contains the first argument (dirfd)
+                unsigned long fd = regs.rdi;          // rdi contains the first argument (fd)
+                unsigned long buffer_addr = regs.rsi; // rsi contains the first argument (buf)
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
                 
                 string node_ip = jsonManager.getKey(to_string(fd))[0][0];
@@ -653,35 +668,37 @@ int main(int argc, char *argv[])
                 unsigned long buffer_addr = regs.rdi;
                 read_memory(child_pid, buffer_addr, buffer, MAX_BUFFER_SIZE);
 
-                // Serialize
-                string data = buffer;
-                CarrotFileRequest request;
-                request.set_syscall_num(syscall_num);
-                request.set_buffer(data);
+                for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
+                    // Serialize
+                    string data = buffer;
+                    CarrotFileRequest request;
+                    request.set_syscall_num(syscall_num);
+                    request.set_buffer(data);
 
-                string serialized_data;
-                request.SerializeToString(&serialized_data);
+                    string serialized_data;
+                    request.SerializeToString(&serialized_data);
 
-                // Send to another machine
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                    // Send to another machine
+                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[i], sizeof(intermediaries[i]));
 
-                // Receive message
-                socklen_t len;
-                len = sizeof(cliaddr); // len is value/result
-                int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-                buffer[n] = '\0';
+                    // Receive message
+                    socklen_t len;
+                    len = sizeof(cliaddr); // len is value/result
+                    int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                    buffer[n] = '\0';
 
-                CarrotFileResponse response;
-                serialized_data = buffer;
-                response.ParseFromString(serialized_data);
+                    CarrotFileResponse response;
+                    serialized_data = buffer;
+                    response.ParseFromString(serialized_data);
 
-                // Change return value
-                if (response.return_val() != -1)
-                {
-                    regs.rax = response.return_val();
-                    regs.orig_rax = -1;
+                    // Change return value
+                    if (response.return_val() != -1)
+                    {
+                        regs.rax = response.return_val();
+                        regs.orig_rax = -1;
+                    }
+                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                 }
-                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
             else if (syscall_num == SYS_mkdir)
@@ -691,36 +708,38 @@ int main(int argc, char *argv[])
                 unsigned long mode = regs.rsi;
                 read_memory(child_pid, buffer_addr, buffer, MAX_BUFFER_SIZE);
 
-                // Serialize
-                string data = buffer;
-                CarrotFileRequest request;
-                request.set_syscall_num(syscall_num);
-                request.set_buffer(data);
-                request.set_arg_two(mode);
+                for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
+                    // Serialize
+                    string data = buffer;
+                    CarrotFileRequest request;
+                    request.set_syscall_num(syscall_num);
+                    request.set_buffer(data);
+                    request.set_arg_two(mode);
 
-                string serialized_data;
-                request.SerializeToString(&serialized_data);
+                    string serialized_data;
+                    request.SerializeToString(&serialized_data);
 
-                // Send to another machine
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                    // Send to another machine
+                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[i], sizeof(intermediaries[i]));
 
-                // Receive message
-                socklen_t len;
-                len = sizeof(cliaddr); // len is value/result
-                int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-                buffer[n] = '\0';
+                    // Receive message
+                    socklen_t len;
+                    len = sizeof(cliaddr); // len is value/result
+                    int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                    buffer[n] = '\0';
 
-                CarrotFileResponse response;
-                serialized_data = buffer;
-                response.ParseFromString(serialized_data);
+                    CarrotFileResponse response;
+                    serialized_data = buffer;
+                    response.ParseFromString(serialized_data);
 
-                // Change return value
-                if (response.return_val() != -1)
-                {
-                    regs.rax = response.return_val();
-                    regs.orig_rax = -1;
+                    // Change return value
+                    if (response.return_val() != -1)
+                    {
+                        regs.rax = response.return_val();
+                        regs.orig_rax = -1;
+                    }
+                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                 }
-                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
             else if (syscall_num == SYS_getcwd)
