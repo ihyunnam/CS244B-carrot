@@ -34,11 +34,26 @@ std::string files[] = {
 #define MAX_BUFFER_SIZE 100000
 using namespace std;
 
+/* In this code, the sender sends a GET request to multiple machines at the same time.
+   Each machine then forwards the message to another intermediary until it reaches destination.
+   The sender waits for a response for 5 seconds and selects the first response
+   that arrives in that time. If it doesn't hear back from any intermediaries in 5 seconds,
+   sender assumes failure and aborts.
+*/
+
+// Alarm to stop waiting for a response to GET
+int timeout = 0;
+
+void handle_alarm(int sig) {
+    timeout = 1;
+}
+
 #define NUM_INTERMEDIARIES 1
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     // "34.82.207.241"};
     "34.41.143.79"};
+// TODO: replace these with real IPs
 
 bool isBufferNonEmpty(const char buffer[])
 {
@@ -207,7 +222,8 @@ std::string readStringFromProcess(pid_t pid, unsigned long addr)
 
 int main(int argc, char *argv[])
 {
-    // Set up intermediaries
+    // Set up intermediaries. Each intermediary will forward to other
+    // machines until destination is reached.
     for (int i = 0; i < NUM_INTERMEDIARIES; ++i)
     {
         intermediaries[i].sin_family = AF_INET;
@@ -284,7 +300,7 @@ int main(int argc, char *argv[])
             return 0;
         }
 
-        while (true)
+        while (true && !timeout)
         {
             ptrace(PTRACE_SYSCALL, child_pid, nullptr, nullptr);
             waitpid(child_pid, &status, 0);
@@ -338,8 +354,13 @@ int main(int argc, char *argv[])
                     string serialized_data;
                     request.SerializeToString(&serialized_data);
 
-                    // Send to another machine
-                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
+                    // Send to all intermediaries in a loop and start timer
+                    signal(SIGALRM, handle_alarm);
+                    alarm(10); // TODO: change this to a reasonable time for a round trip
+
+                    for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
+                        sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[i], sizeof(intermediaries[i]));
+                    }
 
                     // Reset the process
                     regs.orig_rax = SYS_getpid;
@@ -356,6 +377,7 @@ int main(int argc, char *argv[])
 
             else if (syscall_num == SYS_recvfrom)
             {
+                alarm(0); // Cancel alarm
                 cout << counter << endl;
                 if (counter > 0)
                 {
@@ -381,10 +403,13 @@ int main(int argc, char *argv[])
 
                     // write_memory(child_pid, regs.rsi, (void *)buffer, strlen(buffer));
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+
+                    // Close socket after receiving first message
+                    close(sockfd_send);
                 }
                 else
                 {
-                    cout << "Nuull call?" << endl;
+                    cout << "Null call?" << endl;
                 }
             }
 
@@ -393,6 +418,7 @@ int main(int argc, char *argv[])
                     << " from pid " << child_pid << std::endl;
         }
         outfile.close();
+        cout << "Did not receive a response in x seconds. Assume failure and abort." << endl;
     }
     return 0;
 }
