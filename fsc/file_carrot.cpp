@@ -20,50 +20,7 @@
 #include <algorithm>
 #include <fcntl.h>
 #include <vector>
-// #include "json.hpp"
-
-// /* JSON UTIL FUNCTIONS */
-// using json = nlohmann::json;
-
-// class JSONFileManager {
-// private:
-//     std::string filename;
-//     json data;
-
-//     // Function to read a JSON file and return its content as a json object
-//     void readJSONFile() {
-//         std::ifstream file(filename);
-//         file >> data;
-//         file.close();
-//     }
-
-//     // Function to write a json object to a JSON file
-//     void writeJSONFile() {
-//         std::ofstream file(filename);
-//         file << std::setw(4) << data << std::endl;
-//         file.close();
-//     }
-
-// public:
-//     JSONFileManager(const std::string& filename) : filename(filename) {
-//         readJSONFile();
-//     }
-
-//     // Function to edit the contents of a specific key
-//     void editKey(const std::string& key, const std::vector<std::tuple<std::string, int>>& new_values) {
-//         data[key] = new_values;
-//         writeJSONFile();
-//     }
-
-//     // Function to get the values associated with a specific key
-//     json getKey(const std::string& key) const {
-//         if (data.contains(key)) {
-//             return data.at(key);
-//         } else {
-//             return -1;
-//         }
-//     }
-// };
+#include <regex>
 
 // Hashing Libs
 #include <openssl/evp.h>
@@ -144,8 +101,8 @@ public:
             it = ring.begin();
         }
 
-        // Currently getting 3 closest nodes
-        for (int i = 0; i < 3; ++i) {
+        // Currently getting 1 closest nodes
+        for (int i = 0; i < 1; ++i) {
             closestNodes.push_back(it->second);
             ++it;
             if (it == ring.end()) {
@@ -180,12 +137,14 @@ std::string files[] = {
 #define MAX_BUFFER_SIZE 5012
 using namespace std;
 
-#define NUM_INTERMEDIARIES 1
+#define NUM_INTERMEDIARIES 2
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     // "34.82.207.241"};
     // "34.41.143.79"};
-    "34.134.91.102"};
+    "34.134.91.102", 
+    "34.41.143.79",
+};
 
 
 int findIpIndex(const char* target) {
@@ -195,6 +154,23 @@ int findIpIndex(const char* target) {
         }
     }
     return -1;  // Target string not found
+}
+
+std::string shortenPath(const std::string& filePath) {
+    // Define the regex pattern
+    std::regex pattern(R"(/CS244B-carrot/data/(.*))");
+    std::smatch matches;
+
+    // Apply the regex pattern to the file path
+    if (std::regex_search(filePath, matches, pattern)) {
+        if (matches.size() == 2) {
+            std::string relativePath = "./" + matches.str(1);
+            return relativePath;
+        }
+    }
+
+    // throw;
+    return filePath; // Return the original path if regex doesn't match
 }
 
 // string getAbsolutePath(const string& path) {
@@ -491,27 +467,77 @@ int main(int argc, char *argv[])
                     unsigned long flags = regs.rdx; // rdx contains the third argument (flags)
                     unsigned long mode = regs.r10;  // r10 contains the fourth argument (mode)
 
-                    string node_ip = ch.getNode(abs_filename);
-                    // if (pathToFd.getKey(filename) == -1) {
-                    //     node_ip = ch.getNode(filename);
-                    // } else {
-                    //     node_ip = jsonManager.getKey(to_string(pathToFd.getKey(filename)))[0][0];
-                    // }
+                    vector<string> node_ips = ch.getClosestNodes(abs_filename);
+                    bool has_set = false;
+                    vector<tuple<string, int>> remote_info;
+
+                    for (string node_ip: node_ips) {
+                        int ip_index = findIpIndex(node_ip.c_str());
+                        cout << "Opening file " << abs_filename << " at machine with IP " << node_ip << endl;
+
+                        // Serialize
+                        CarrotFileRequest request;
+                        request.set_syscall_num(syscall_num);
+                        request.set_buffer(filename);
+                        request.set_arg_three(flags);
+                        request.set_arg_four(mode);
+
+                        string serialized_data;
+                        request.SerializeToString(&serialized_data);
+
+                        // Send to another machine
+                        sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[ip_index], sizeof(intermediaries[ip_index]));
+                        // cout << "Sending message" << endl;
+
+                        // Receive message
+                        socklen_t len;
+                        len = sizeof(cliaddr); // len is value/result
+                        int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                        buffer[n] = '\0';
+
+                        CarrotFileResponse response;
+                        serialized_data = buffer;
+                        response.ParseFromString(serialized_data);
+
+                        // Change return value
+                        if (response.return_val() != -1)
+                        {
+                            if (has_set == false) {
+                                regs.rax = response.return_val();
+                                regs.orig_rax = -1;
+                                has_set = true;
+                                fdToAbsolutePath[response.return_val()] = abs_filename;
+                            }
+                            remote_info.push_back({ip_addresses[ip_index], response.return_val()});
+                        }
+                    }
+                    localFdToRemoteFd[regs.rax] = remote_info;
+                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
+                }
+            }
+
+            // Close the file
+            else if (syscall_num == SYS_close)
+            {
+                unsigned long fd = regs.rdi; // rdi contains the first argument (dirfd)
+
+                // string node_ip = ch.getNode(fdToAbsolutePath[fd]);
+                vector<string> node_ips = ch.getClosestNodes(fdToAbsolutePath[fd]);
+
+                for (string node_ip: node_ips) {
+                    cout << "Closing file " << fdToAbsolutePath[fd] << " at machine with IP " << node_ip << endl;
                     int ip_index = findIpIndex(node_ip.c_str());
 
                     // Serialize
                     CarrotFileRequest request;
                     request.set_syscall_num(syscall_num);
-                    request.set_buffer(filename);
-                    request.set_arg_three(flags);
-                    request.set_arg_four(mode);
+                    request.set_arg_one(fd);
 
                     string serialized_data;
                     request.SerializeToString(&serialized_data);
 
                     // Send to another machine
                     sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[ip_index], sizeof(intermediaries[ip_index]));
-                    // cout << "Sending message" << endl;
 
                     // Receive message
                     socklen_t len;
@@ -528,54 +554,9 @@ int main(int argc, char *argv[])
                     {
                         regs.rax = response.return_val();
                         regs.orig_rax = -1;
-
-                        // Add to map
-                        fdToAbsolutePath[response.return_val()] = absolutePath;
-                        // vector<tuple<string, int>> info = {{node_ip, response.return_val()}};
-                        // jsonManager.editKey(to_string(response.return_val()), info);
                     }
-                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-                    // regs.rax = stoi(buffer);
-                    // regs.orig_rax = -1;
-                    // ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                 }
-            }
-
-            // Close the file
-            else if (syscall_num == SYS_close)
-            {
-                unsigned long fd = regs.rdi; // rdi contains the first argument (dirfd)
-
-                string node_ip = ch.getNode(fdToAbsolutePath[fd]);
-                int ip_index = findIpIndex(node_ip.c_str());
-
-                // Serialize
-                CarrotFileRequest request;
-                request.set_syscall_num(syscall_num);
-                request.set_arg_one(fd);
-
-                string serialized_data;
-                request.SerializeToString(&serialized_data);
-
-                // Send to another machine
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[ip_index], sizeof(intermediaries[ip_index]));
-
-                // Receive message
-                socklen_t len;
-                len = sizeof(cliaddr); // len is value/result
-                int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-                buffer[n] = '\0';
-
-                CarrotFileResponse response;
-                serialized_data = buffer;
-                response.ParseFromString(serialized_data);
-
-                // Change return value
-                if (response.return_val() != -1)
-                {
-                    regs.rax = response.return_val();
-                    regs.orig_rax = -1;
-                }
+                localFdToRemoteFd.erase(fd);
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
@@ -586,8 +567,8 @@ int main(int argc, char *argv[])
                 unsigned long buffer_addr = regs.rsi; // rsi contains the second argument (buf)
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
 
-                // string node_ip = jsonManager.getKey(to_string(fd))[0][0];
                 string node_ip = ch.getNode(fdToAbsolutePath[fd]);
+                cout << "Reading file " << fdToAbsolutePath[fd] << " at machine with IP " << node_ip << endl;
                 int ip_index = findIpIndex(node_ip.c_str());
 
                 // Serialize
@@ -632,43 +613,47 @@ int main(int argc, char *argv[])
                 unsigned long buffer_addr = regs.rsi; // rsi contains the first argument (buf)
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
                 
-                // string node_ip = jsonManager.getKey(to_string(fd))[0][0];
-                string node_ip = ch.getNode(fdToAbsolutePath[fd]);
-                int ip_index = findIpIndex(node_ip.c_str());
+                // string node_ip = ch.getNode(fdToAbsolutePath[fd]);
+                vector<string> node_ips = ch.getClosestNodes(fdToAbsolutePath[fd]);
 
                 read_memory(child_pid, buffer_addr, buffer, count);
 
                 std::string data = buffer;
 
-                // Serialize
-                CarrotFileRequest request;
-                request.set_syscall_num(syscall_num);
-                request.set_arg_one(fd);
-                request.set_buffer(data);
-                request.set_arg_three(count);
+                for (string node_ip: node_ips) {
+                    cout << "Writing to file " << fdToAbsolutePath[fd] << " at machine with IP " << node_ip << endl;
+                    int ip_index = findIpIndex(node_ip.c_str());
+                    
+                    // Serialize
+                    CarrotFileRequest request;
+                    request.set_syscall_num(syscall_num);
+                    request.set_arg_one(fd);
+                    request.set_buffer(data);
+                    request.set_arg_three(count);
 
-                string serialized_data;
-                request.SerializeToString(&serialized_data);
+                    string serialized_data;
+                    request.SerializeToString(&serialized_data);
 
-                // Send to another machine
-                sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[ip_index], sizeof(intermediaries[ip_index]));
+                    // Send to another machine
+                    sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[ip_index], sizeof(intermediaries[ip_index]));
 
-                // Receive message
-                socklen_t len;
-                len = sizeof(cliaddr); // len is value/result
-                int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-                buffer[n] = '\0';
+                    // Receive message
+                    socklen_t len;
+                    len = sizeof(cliaddr); // len is value/result
+                    int n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                    buffer[n] = '\0';
 
-                CarrotFileResponse response;
-                serialized_data = buffer;
-                response.ParseFromString(serialized_data);
-                const char *response_buf = response.buffer().c_str();
+                    CarrotFileResponse response;
+                    serialized_data = buffer;
+                    response.ParseFromString(serialized_data);
+                    const char *response_buf = response.buffer().c_str();
 
-                // Change return value
-                if (response.return_val() != -1)
-                {
-                    regs.rax = response.return_val();
-                    regs.orig_rax = -1;
+                    // Change return value
+                    if (response.return_val() != -1)
+                    {
+                        regs.rax = response.return_val();
+                        regs.orig_rax = -1;
+                    }
                 }
                 ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
@@ -704,10 +689,14 @@ int main(int argc, char *argv[])
                     response.ParseFromString(serialized_data);
 
                     // Change return value
+                    response.buffer();
+
                     if (response.return_val() != -1)
                     {
                         regs.rax = response.return_val();
                         regs.orig_rax = -1;
+
+                        absolutePath = shortenPath(response.buffer());
                     }
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                 }
@@ -780,8 +769,9 @@ int main(int argc, char *argv[])
                 CarrotFileResponse response;
                 serialized_data = buffer;
                 response.ParseFromString(serialized_data);
-                const char *response_buf = response.buffer().c_str();
-                cout << response.buffer() << endl;
+                string shorten = shortenPath(response.buffer());
+                const char *response_buf = shorten.c_str();
+                cout << shorten << endl;
 
                 // Fill in buffer
                 // TO-DO: RETURN VALUE
@@ -799,3 +789,4 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
+

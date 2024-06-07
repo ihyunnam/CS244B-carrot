@@ -12,6 +12,8 @@ fsc/file_carrot
 fsc/file_receiver
 fsc/file_test1
 fsc/file_test2
+fsc/file_test3
+fsc/awesome.txt
 
 # Networking executables
 nsc/curl
