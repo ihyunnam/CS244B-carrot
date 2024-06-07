@@ -60,7 +60,7 @@ struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     "104.154.255.113", // Ihyun 1
     "34.31.215.63", // Ihyun 2
-    "" // Ihyun 3
+    "34.30.140.158" // Ihyun 3
 };
 // TODO: replace these with real IPs
 
@@ -401,17 +401,18 @@ int main(int argc, char *argv[])
                     
                     char* success_code = "HTTP/1.1 200 OK";
                     char success_code_real[16];
-                    buffer[n] = '\0';
+                    char buffer[MAX_BUFFER_SIZE];
+		    //buffer[n] = '\0';
                     success_code_real[15] = '\0';
                     strncpy(success_code_real, success_code, 15);
                     //bool solved = false;
                     ssize_t n;
                     for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
                         char fakebuffer[MAX_BUFFER_SIZE];
-                        fakebuffer[n] = '\0';
                         n = recvfrom(sockfd_send, fakebuffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
-                        compare_buffer[15];
-                        compare_buffer[14] = '\0';
+			fakebuffer[n] = '\0';
+                        char compare_buffer[16];
+                        compare_buffer[15] = '\0';
                         strncpy(compare_buffer, success_code, 15);
                         
                         cout << "Size from interposition: " << n << endl;
