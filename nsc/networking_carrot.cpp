@@ -55,14 +55,12 @@ std::chrono::system_clock::time_point get_current_time()
     return std::chrono::system_clock::now();
 }
 
-#define NUM_INTERMEDIARIES 3
+#define NUM_INTERMEDIARIES 2
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
-    "104.154.255.113", // Ihyun 1
-    "34.31.215.63", // Ihyun 2
-    "34.30.140.158" // Ihyun 3
+    "104.154.255.113", // Receiver where google.com is blocked (Ihyun 1)
+    "34.30.140.158" // Receiver where google.com is allowed (Ihyun 3)
 };
-// TODO: replace these with real IPs
 
 bool isBufferNonEmpty(const char buffer[])
 {
