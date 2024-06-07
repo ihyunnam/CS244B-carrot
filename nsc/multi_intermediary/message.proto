@@ -1,0 +1,11 @@
+/* This is the CarrotMessage template for the multiple intermediaries case.
+*/
+
+syntax = "proto3";
+
+message CarrotMessage {
+  string ip_address = 1;
+  int32 port = 2;
+  string message = 3;
+  repeated string sender_addresses = 4;
+}
