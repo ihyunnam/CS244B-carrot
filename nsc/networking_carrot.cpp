@@ -60,8 +60,7 @@ struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     "104.154.255.113", // Ihyun 1
     "34.31.215.63", // Ihyun 2
-    "34.69.125.94", // Kamyar 1
-    "34.121.111.236" // Kamyar 2
+    "" // Ihyun 3
 };
 // TODO: replace these with real IPs
 
@@ -368,13 +367,14 @@ int main(int argc, char *argv[])
                     start_time = get_current_time();
                     // Send to all intermediaries in a loop
                     for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
+                        // sendto blocks
                         sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[i], sizeof(intermediaries[i]));
                     }
-
                     // Reset the process
                     regs.orig_rax = SYS_getpid;
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                     counter += 1;
+                    
                 }
 
                 // Else, maybe we interpose here?
@@ -397,14 +397,38 @@ int main(int argc, char *argv[])
                     counter -= 1;
                     socklen_t len;
                     len = sizeof(cliaddr); // len is value/result
-                    ssize_t n = recvfrom(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                    
+                    
+                    char* success_code = "HTTP/1.1 200 OK";
+                    char success_code_real[16];
                     buffer[n] = '\0';
+                    success_code_real[15] = '\0';
+                    strncpy(success_code_real, success_code, 15);
+                    //bool solved = false;
+                    ssize_t n;
+                    for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
+                        char fakebuffer[MAX_BUFFER_SIZE];
+                        fakebuffer[n] = '\0';
+                        n = recvfrom(sockfd_send, fakebuffer, MAX_BUFFER_SIZE - 1, 0, reinterpret_cast<sockaddr *>(&cliaddr), &len);
+                        compare_buffer[15];
+                        compare_buffer[14] = '\0';
+                        strncpy(compare_buffer, success_code, 15);
+                        
+                        cout << "Size from interposition: " << n << endl;
 
-                    cout << "Size from interposition: " << n << endl;
+                        // Set appropriate values
+                        regs.rax = n;
+                        regs.orig_rax = -1;
 
-                    // Set appropriate values
-                    regs.rax = n;
-                    regs.orig_rax = -1;
+                        // Check if buffer contains success_code
+                        if (strstr(fakebuffer, success_code_real) != nullptr) {
+                            cout << "success_code found in buffer and copied to fakebuffer" << endl;
+                            //solved = true;
+                            memcpy(buffer, fakebuffer, sizeof(fakebuffer));
+                            break;
+                        }
+                    }
+                   
 
                     for (int i = 0; i < n; i += sizeof(long))
                     {
@@ -421,7 +445,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    cout << "Nuull call?" << endl;
+                    cout << "Null call?" << endl;
                 }
             }
 
