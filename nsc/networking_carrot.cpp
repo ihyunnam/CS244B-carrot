@@ -55,7 +55,7 @@ std::chrono::system_clock::time_point get_current_time()
     return std::chrono::system_clock::now();
 }
 
-#define NUM_INTERMEDIARIES 4
+#define NUM_INTERMEDIARIES 3
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     "104.154.255.113", // Ihyun 1
