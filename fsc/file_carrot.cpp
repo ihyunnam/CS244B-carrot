@@ -19,6 +19,7 @@
 #include <cerrno>
 #include <algorithm>
 #include <fcntl.h>
+#include <vector>
 // #include "json.hpp"
 
 // /* JSON UTIL FUNCTIONS */
@@ -196,13 +197,13 @@ int findIpIndex(const char* target) {
     return -1;  // Target string not found
 }
 
-string getAbsolutePath(const string& path) {
-    try {
-        return filesystem::absolute(path).string();
-    } catch (const filesystem::filesystem_error& e) {
-        throw runtime_error(e.what());
-    }
-}
+// string getAbsolutePath(const string& path) {
+//     try {
+//         return filesystem::absolute(path).string();
+//     } catch (const filesystem::filesystem_error& e) {
+//         throw runtime_error(e.what());
+//     }
+// }
 
 bool isBufferNonEmpty(const char buffer[])
 {
