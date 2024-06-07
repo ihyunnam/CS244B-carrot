@@ -38,6 +38,9 @@ using namespace std;
 /* This code assumes that the sender knows and can directly send requests to
    multiple machines inside the firewall that can access the requested website.
    The sender uses the resource that arrives first.
+
+   For testing with VMs Ihyun 1 and Ihyun 3 (google.com blocked VS. allowed)
+   run this on VM 34.31.215.63 (Ihyun 2).
 */
 
 void print_time()
