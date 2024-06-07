@@ -81,9 +81,11 @@ int main()
         {
             int fd = open((r_file.buffer().c_str()), r_file.arg_three(), r_file.arg_four());
 
+            // Write message
             CarrotFileResponse r_response;
             r_response.set_return_val(fd);
 
+            // Serialize and send
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
@@ -94,9 +96,11 @@ int main()
         {
             int result = close(r_file.arg_one());
 
+            // Write message
             CarrotFileResponse r_response;
             r_response.set_return_val(result);
 
+            // Serialize and send
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
@@ -133,18 +137,13 @@ int main()
         {
             // Get cwd
             char cwd[r_file.arg_two()];
-            getcwd(cwd, sizeof(cwd));
-
-            // Extract path
-            string remaining_path = string(cwd).substr(string(maindir).length());
-            if (remaining_path[0] == '/')
-            {
-                remaining_path = remaining_path.substr(1);
-            }
+            getcwd(cwd, r_file.arg_two());
 
             // Write response
             CarrotFileResponse r_response;
-            r_response.set_buffer(remaining_path);
+            r_response.set_buffer(string(cwd));
+
+            // Serialize and send
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
@@ -155,9 +154,11 @@ int main()
         {
             int result = mkdir(r_file.buffer().c_str(), r_file.arg_two());
 
-            // // Write response
+            // Write response
             CarrotFileResponse r_response;
             r_response.set_return_val(result);
+
+            // Serialize and send data
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
@@ -168,9 +169,16 @@ int main()
         {
             int result = chdir((r_file.buffer().c_str()));
 
+            // Extract the current working directory for assistance for interposition
+            char cwd[1024];
+            getcwd(cwd, 1024);
+
             // Write response
             CarrotFileResponse r_response;
             r_response.set_return_val(result);
+            r_response.set_buffer(cwd);
+
+            // Serialize and send data
             string serialized_data;
             r_response.SerializeToString(&serialized_data);
             sendto(sockfd, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&cliaddr, sizeof(cliaddr));
