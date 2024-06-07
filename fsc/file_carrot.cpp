@@ -101,8 +101,8 @@ public:
             it = ring.begin();
         }
 
-        // Currently getting 1 closest nodes
-        for (int i = 0; i < 1; ++i) {
+        // Currently getting 2 closest nodes
+        for (int i = 0; i < 2; ++i) {
             closestNodes.push_back(it->second);
             ++it;
             if (it == ring.end()) {
@@ -137,13 +137,12 @@ std::string files[] = {
 #define MAX_BUFFER_SIZE 5012
 using namespace std;
 
-#define NUM_INTERMEDIARIES 2
+#define NUM_INTERMEDIARIES 3
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
-    // "34.82.207.241"};
-    // "34.41.143.79"};
     "34.134.91.102", 
     "34.41.143.79",
+    "35.185.229.10"
 };
 
 
@@ -158,28 +157,19 @@ int findIpIndex(const char* target) {
 
 std::string shortenPath(const std::string& filePath) {
     // Define the regex pattern
-    std::regex pattern(R"(/CS244B-carrot/data/(.*))");
+    std::regex pattern(R"(/CS244B-carrot/data(.*))");
     std::smatch matches;
 
     // Apply the regex pattern to the file path
     if (std::regex_search(filePath, matches, pattern)) {
         if (matches.size() == 2) {
-            std::string relativePath = "./" + matches.str(1);
-            return relativePath;
+            std::string relativePath = "." + matches.str(1);
+            return relativePath + "/";
         }
     }
 
-    // throw;
     return filePath; // Return the original path if regex doesn't match
 }
-
-// string getAbsolutePath(const string& path) {
-//     try {
-//         return filesystem::absolute(path).string();
-//     } catch (const filesystem::filesystem_error& e) {
-//         throw runtime_error(e.what());
-//     }
-// }
 
 bool isBufferNonEmpty(const char buffer[])
 {
@@ -352,8 +342,6 @@ int main(int argc, char *argv[])
     string absolutePath = "./";
     map<int, string> fdToAbsolutePath;
     map<int, vector<tuple<string, int>>> localFdToRemoteFd;
-    // JSONFileManager jsonManager("fd_info.json");
-    // JSONFileManager pathToFd("path_fd_map.json");
 
     // Set up intermediaries
     for (int i = 0; i < NUM_INTERMEDIARIES; ++i)
@@ -613,7 +601,6 @@ int main(int argc, char *argv[])
                 unsigned long buffer_addr = regs.rsi; // rsi contains the first argument (buf)
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
                 
-                // string node_ip = ch.getNode(fdToAbsolutePath[fd]);
                 vector<string> node_ips = ch.getClosestNodes(fdToAbsolutePath[fd]);
 
                 read_memory(child_pid, buffer_addr, buffer, count);
@@ -664,10 +651,10 @@ int main(int argc, char *argv[])
                 unsigned long buffer_addr = regs.rdi;
                 read_memory(child_pid, buffer_addr, buffer, MAX_BUFFER_SIZE);
                 absolutePath += buffer;
+                string data = buffer;
 
                 for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
                     // Serialize
-                    string data = buffer;
                     CarrotFileRequest request;
                     request.set_syscall_num(syscall_num);
                     request.set_buffer(data);
@@ -698,8 +685,8 @@ int main(int argc, char *argv[])
 
                         absolutePath = shortenPath(response.buffer());
                     }
-                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                 }
+                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
             else if (syscall_num == SYS_mkdir)
@@ -708,10 +695,12 @@ int main(int argc, char *argv[])
                 unsigned long buffer_addr = regs.rdi;
                 unsigned long mode = regs.rsi;
                 read_memory(child_pid, buffer_addr, buffer, MAX_BUFFER_SIZE);
+                string data = buffer;
 
                 for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
                     // Serialize
-                    string data = buffer;
+                    cout << "Making dir with data: " << data << endl;
+
                     CarrotFileRequest request;
                     request.set_syscall_num(syscall_num);
                     request.set_buffer(data);
@@ -731,6 +720,7 @@ int main(int argc, char *argv[])
 
                     CarrotFileResponse response;
                     serialized_data = buffer;
+                    cout << "THIS IS BUFFER: " << buffer << endl;
                     response.ParseFromString(serialized_data);
 
                     // Change return value
@@ -739,8 +729,8 @@ int main(int argc, char *argv[])
                         regs.rax = response.return_val();
                         regs.orig_rax = -1;
                     }
-                    ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                 }
+                ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
             }
 
             else if (syscall_num == SYS_getcwd)
