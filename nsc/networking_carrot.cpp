@@ -385,20 +385,20 @@ int main(int argc, char *argv[])
                 }
             }
 
-            else if (syscall_num == SYS_recvfrom && !received)
+            else if (syscall_num == SYS_recvfrom)
             {
                 received = true;
                 cout << counter << endl;
                 if (counter > 0)
                 {
-                    auto end_time = get_current_time();
-                    std::chrono::duration<double> time_diff = end_time - start_time;
-                    cout << "End to end time: " << time_diff.count() << " seconds" << endl;
+                    // auto end_time = get_current_time();
+                    // std::chrono::duration<double> time_diff = end_time - start_time;
+                    // cout << "End to end time: " << time_diff.count() << " seconds" << endl;
                     // Update the counter and receive the message
+
                     counter -= 1;
                     socklen_t len;
                     len = sizeof(cliaddr); // len is value/result
-                    
                     
                     char* success_code = "HTTP/1.1 200 OK";
                     char success_code_real[16];
@@ -425,7 +425,6 @@ int main(int argc, char *argv[])
                         // Check if buffer contains success_code
                         if (strstr(fakebuffer, success_code_real) != nullptr) {
                             cout << "success_code found in buffer and copied to fakebuffer" << endl;
-                            //solved = true;
                             memcpy(buffer, fakebuffer, sizeof(fakebuffer));
                             break;
                         }
