@@ -50,12 +50,12 @@ void print_time()
 /*
  * Helper utility to get the current time
  */
-system_clock::time_point get_current_time()
+std::chrono::system_clock::time_point get_current_time()
 {
     return std::chrono::system_clock::now();
 }
 
-#define NUM_INTERMEDIARIES 1
+#define NUM_INTERMEDIARIES 4
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     "104.154.255.113", // Ihyun 1
@@ -284,6 +284,9 @@ int main(int argc, char *argv[])
     pid_t child_pid = fork();
     chargs[i] = NULL;
 
+    // need to be & will be overwritten later
+    auto start_time = get_current_time();
+
     // Error handling
     if (child_pid == -1)
     {
@@ -362,7 +365,7 @@ int main(int argc, char *argv[])
 
                     string serialized_data;
                     request.SerializeToString(&serialized_data);
-                    auto start_time = get_current_time();
+                    start_time = get_current_time();
                     // Send to all intermediaries in a loop
                     for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
                         sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[i], sizeof(intermediaries[i]));
@@ -388,7 +391,7 @@ int main(int argc, char *argv[])
                 if (counter > 0)
                 {
                     auto end_time = get_current_time();
-                    duration<double> time_diff = end_time - start_time;
+                    std::chrono::duration<double> time_diff = end_time - start_time;
                     cout << "End to end time: " << time_diff.count() << " seconds" << endl;
                     // Update the counter and receive the message
                     counter -= 1;
