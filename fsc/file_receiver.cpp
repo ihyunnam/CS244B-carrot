@@ -168,6 +168,10 @@ int main()
         {
             int result = chdir((r_file.buffer().c_str()));
 
+            char cwd[1024];
+            getcwd(cwd, 1024);
+            cout << cwd << endl;
+
             // Write response
             CarrotFileResponse r_response;
             r_response.set_return_val(result);
