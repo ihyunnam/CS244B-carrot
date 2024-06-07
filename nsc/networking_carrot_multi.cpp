@@ -378,11 +378,9 @@ int main(int argc, char *argv[])
                     counter += 1;
                     
                 }
-
-                // Else, maybe we interpose here?
                 else
                 {
-                    std::cout << "The word 'GET' is not in the buffer.\n";
+                    std::cout << "The word 'GET' is not in the buffer. Don't interpose.\n";
                 }
             }
 
@@ -428,10 +426,10 @@ int main(int argc, char *argv[])
                             cout << "success_code found in buffer and copied to fakebuffer" << endl;
                             memcpy(buffer, fakebuffer, sizeof(fakebuffer));
                             break;
-                        }
+                        } else {
+			    cout << "Machine " << i << " failed to fetch www.google.com." << endl;
+			}
                     }
-                   
-
                     for (int i = 0; i < n; i += sizeof(long))
                     {
                         long data;
