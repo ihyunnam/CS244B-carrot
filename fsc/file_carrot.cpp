@@ -19,50 +19,50 @@
 #include <cerrno>
 #include <algorithm>
 #include <fcntl.h>
-#include "json.hpp"
+// #include "json.hpp"
 
-/* JSON UTIL FUNCTIONS */
-using json = nlohmann::json;
+// /* JSON UTIL FUNCTIONS */
+// using json = nlohmann::json;
 
-class JSONFileManager {
-private:
-    std::string filename;
-    json data;
+// class JSONFileManager {
+// private:
+//     std::string filename;
+//     json data;
 
-    // Function to read a JSON file and return its content as a json object
-    void readJSONFile() {
-        std::ifstream file(filename);
-        file >> data;
-        file.close();
-    }
+//     // Function to read a JSON file and return its content as a json object
+//     void readJSONFile() {
+//         std::ifstream file(filename);
+//         file >> data;
+//         file.close();
+//     }
 
-    // Function to write a json object to a JSON file
-    void writeJSONFile() {
-        std::ofstream file(filename);
-        file << std::setw(4) << data << std::endl;
-        file.close();
-    }
+//     // Function to write a json object to a JSON file
+//     void writeJSONFile() {
+//         std::ofstream file(filename);
+//         file << std::setw(4) << data << std::endl;
+//         file.close();
+//     }
 
-public:
-    JSONFileManager(const std::string& filename) : filename(filename) {
-        readJSONFile();
-    }
+// public:
+//     JSONFileManager(const std::string& filename) : filename(filename) {
+//         readJSONFile();
+//     }
 
-    // Function to edit the contents of a specific key
-    void editKey(const std::string& key, const std::vector<std::tuple<std::string, int>>& new_values) {
-        data[key] = new_values;
-        writeJSONFile();
-    }
+//     // Function to edit the contents of a specific key
+//     void editKey(const std::string& key, const std::vector<std::tuple<std::string, int>>& new_values) {
+//         data[key] = new_values;
+//         writeJSONFile();
+//     }
 
-    // Function to get the values associated with a specific key
-    json getKey(const std::string& key) const {
-        if (data.contains(key)) {
-            return data.at(key);
-        } else {
-            return -1;
-        }
-    }
-};
+//     // Function to get the values associated with a specific key
+//     json getKey(const std::string& key) const {
+//         if (data.contains(key)) {
+//             return data.at(key);
+//         } else {
+//             return -1;
+//         }
+//     }
+// };
 
 // Hashing Libs
 #include <openssl/evp.h>
@@ -183,7 +183,9 @@ using namespace std;
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     // "34.82.207.241"};
-    "34.41.143.79"};
+    // "34.41.143.79"};
+    "34.134.91.102"};
+
 
 int findIpIndex(const char* target) {
     for (int i = 0; i < NUM_INTERMEDIARIES; ++i) {
@@ -370,8 +372,11 @@ std::string readStringFromProcess(pid_t pid, unsigned long addr)
 int main(int argc, char *argv[])
 {
     ConsistentHashing ch;
-    JSONFileManager jsonManager("fd_info.json");
-    JSONFileManager pathToFd("path_fd_map.json");
+    string absolutePath = "./";
+    map<int, string> fdToAbsolutePath;
+    map<int, vector<tuple<string, int>>> localFdToRemoteFd;
+    // JSONFileManager jsonManager("fd_info.json");
+    // JSONFileManager pathToFd("path_fd_map.json");
 
     // Set up intermediaries
     for (int i = 0; i < NUM_INTERMEDIARIES; ++i)
@@ -473,6 +478,7 @@ int main(int argc, char *argv[])
                 // Find file name
                 unsigned long filename_addr = regs.rsi; // rsi contains the second argument (filename) for openat, rdi for openat
                 std::string filename = readStringFromProcess(child_pid, filename_addr);
+                string abs_filename = absolutePath + filename;
                 std::cout << "Open syscall called with file: " << filename << std::endl;
 
                 // Check if file is something that isn't usually opened
@@ -484,12 +490,12 @@ int main(int argc, char *argv[])
                     unsigned long flags = regs.rdx; // rdx contains the third argument (flags)
                     unsigned long mode = regs.r10;  // r10 contains the fourth argument (mode)
 
-                    string node_ip;
-                    if (pathToFd.getKey(filename) == -1) {
-                        node_ip = ch.getNode(filename);
-                    } else {
-                        node_ip = jsonManager.getKey(to_string(pathToFd.getKey(filename)))[0][0];
-                    }
+                    string node_ip = ch.getNode(abs_filename);
+                    // if (pathToFd.getKey(filename) == -1) {
+                    //     node_ip = ch.getNode(filename);
+                    // } else {
+                    //     node_ip = jsonManager.getKey(to_string(pathToFd.getKey(filename)))[0][0];
+                    // }
                     int ip_index = findIpIndex(node_ip.c_str());
 
                     // Serialize
@@ -522,8 +528,10 @@ int main(int argc, char *argv[])
                         regs.rax = response.return_val();
                         regs.orig_rax = -1;
 
-                        vector<tuple<string, int>> info = {{node_ip, response.return_val()}};
-                        jsonManager.editKey(to_string(response.return_val()), info);
+                        // Add to map
+                        fdToAbsolutePath[response.return_val()] = absolutePath;
+                        // vector<tuple<string, int>> info = {{node_ip, response.return_val()}};
+                        // jsonManager.editKey(to_string(response.return_val()), info);
                     }
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                     // regs.rax = stoi(buffer);
@@ -537,7 +545,7 @@ int main(int argc, char *argv[])
             {
                 unsigned long fd = regs.rdi; // rdi contains the first argument (dirfd)
 
-                string node_ip = jsonManager.getKey(to_string(fd))[0][0];
+                string node_ip = ch.getNode(fdToAbsolutePath[fd]);
                 int ip_index = findIpIndex(node_ip.c_str());
 
                 // Serialize
@@ -577,7 +585,8 @@ int main(int argc, char *argv[])
                 unsigned long buffer_addr = regs.rsi; // rsi contains the second argument (buf)
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
 
-                string node_ip = jsonManager.getKey(to_string(fd))[0][0];
+                // string node_ip = jsonManager.getKey(to_string(fd))[0][0];
+                string node_ip = ch.getNode(fdToAbsolutePath[fd]);
                 int ip_index = findIpIndex(node_ip.c_str());
 
                 // Serialize
@@ -622,7 +631,8 @@ int main(int argc, char *argv[])
                 unsigned long buffer_addr = regs.rsi; // rsi contains the first argument (buf)
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
                 
-                string node_ip = jsonManager.getKey(to_string(fd))[0][0];
+                // string node_ip = jsonManager.getKey(to_string(fd))[0][0];
+                string node_ip = ch.getNode(fdToAbsolutePath[fd]);
                 int ip_index = findIpIndex(node_ip.c_str());
 
                 read_memory(child_pid, buffer_addr, buffer, count);
@@ -667,6 +677,7 @@ int main(int argc, char *argv[])
                 // Trace out the buffer
                 unsigned long buffer_addr = regs.rdi;
                 read_memory(child_pid, buffer_addr, buffer, MAX_BUFFER_SIZE);
+                absolutePath += buffer;
 
                 for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
                     // Serialize
