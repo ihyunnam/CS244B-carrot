@@ -212,7 +212,7 @@ string urlToIpAddress(const string &url)
     hints.ai_socktype = SOCK_STREAM;
 
     // Perform the getaddrinfo call
-    cout << url.c_str() << endl;
+    // cout << url.c_str() << endl;
     if ((status = getaddrinfo(url.c_str(), NULL, &hints, &res)) != 0)
     {
         cerr << "getaddrinfo: " << gai_strerror(status) << " (Error Code: " << status << ")" << endl;
@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
                 unsigned long filename_addr = regs.rsi; // rsi contains the second argument (filename) for openat, rdi for openat
                 std::string filename = readStringFromProcess(child_pid, filename_addr);
                 string abs_filename = absolutePath + filename;
-                std::cout << "Open syscall called with file: " << filename << std::endl;
+                // std::cout << "Open syscall called with file: " << filename << std::endl;
 
                 // Check if file is something that isn't usually opened
                 bool found = find(begin(files), std::end(files), filename) != std::end(files);
@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
 
                     for (string node_ip: node_ips) {
                         int ip_index = findIpIndex(node_ip.c_str());
-                        cout << "Opening file " << abs_filename << " at machine with IP " << node_ip << endl;
+                        // cout << "Opening file " << abs_filename << " at machine with IP " << node_ip << endl;
 
                         // Serialize
                         CarrotFileRequest request;
@@ -513,7 +513,7 @@ int main(int argc, char *argv[])
                 vector<string> node_ips = ch.getClosestNodes(fdToAbsolutePath[fd]);
 
                 for (string node_ip: node_ips) {
-                    cout << "Closing file " << fdToAbsolutePath[fd] << " at machine with IP " << node_ip << endl;
+                    // cout << "Closing file " << fdToAbsolutePath[fd] << " at machine with IP " << node_ip << endl;
                     int ip_index = findIpIndex(node_ip.c_str());
 
                     // Serialize
@@ -556,7 +556,7 @@ int main(int argc, char *argv[])
                 unsigned long count = regs.rdx;       // rdx contains the third argument (count)
 
                 string node_ip = ch.getNode(fdToAbsolutePath[fd]);
-                cout << "Reading file " << fdToAbsolutePath[fd] << " at machine with IP " << node_ip << endl;
+                // cout << "Reading file " << fdToAbsolutePath[fd] << " at machine with IP " << node_ip << endl;
                 int ip_index = findIpIndex(node_ip.c_str());
 
                 // Serialize
@@ -608,7 +608,7 @@ int main(int argc, char *argv[])
                 std::string data = buffer;
 
                 for (string node_ip: node_ips) {
-                    cout << "Writing to file " << fdToAbsolutePath[fd] << " at machine with IP " << node_ip << endl;
+                    // cout << "Writing to file " << fdToAbsolutePath[fd] << " at machine with IP " << node_ip << endl;
                     int ip_index = findIpIndex(node_ip.c_str());
                     
                     // Serialize
@@ -699,7 +699,7 @@ int main(int argc, char *argv[])
 
                 for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
                     // Serialize
-                    cout << "Making dir with data: " << data << endl;
+                    // cout << "Making dir with data: " << data << endl;
 
                     CarrotFileRequest request;
                     request.set_syscall_num(syscall_num);
@@ -720,7 +720,7 @@ int main(int argc, char *argv[])
 
                     CarrotFileResponse response;
                     serialized_data = buffer;
-                    cout << "THIS IS BUFFER: " << buffer << endl;
+                    // cout << "THIS IS BUFFER: " << buffer << endl;
                     response.ParseFromString(serialized_data);
 
                     // Change return value
@@ -761,7 +761,7 @@ int main(int argc, char *argv[])
                 response.ParseFromString(serialized_data);
                 string shorten = shortenPath(response.buffer());
                 const char *response_buf = shorten.c_str();
-                cout << shorten << endl;
+                // cout << shorten << endl;
 
                 // Fill in buffer
                 // TO-DO: RETURN VALUE
