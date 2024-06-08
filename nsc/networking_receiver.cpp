@@ -20,7 +20,7 @@
 #include "../protobufs/messages/message.pb.cc"
 
 #define PORT 12346 // Change the port number here
-#define MAX_BUFFER_SIZE 1024
+#define MAX_BUFFER_SIZE 1400
 using namespace std;
 
 string SAVED_FOLDER = "data/";
@@ -122,14 +122,14 @@ int main()
         struct sockaddr_in sender_addr;
         sender_addr.sin_family = AF_INET;
         sender_addr.sin_port = htons(12346);
-        inet_pton(AF_INET, "34.134.91.102", &sender_addr.sin_addr);
+        inet_pton(AF_INET, "34.69.125.94", &sender_addr.sin_addr);
 
         // Receive the response
         // Receive data in a loop
         int bytes_received;
         cout << "Receiving bytes" << endl;
         std::stringstream received_data;
-        while ((bytes_received = recv(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0)) > 0) {
+        if ((bytes_received = recv(sockfd_send, buffer, MAX_BUFFER_SIZE - 1, 0)) > 0) {
             buffer[bytes_received] = '\0'; // Null-terminate the received data
             received_data << buffer; // Concatenate the received data
             // cout << buffer << endl;
@@ -145,17 +145,19 @@ int main()
         }
 
         // Print the concatenated data
-        std::cout << "Concatenated data:" << std::endl;
-        // std::cout << received_data.str() << std::endl;
+        // std::cout << "Concatenated data:" << std::endl;
+        std::cout << received_data.str() << std::endl;
 
         // Convert stringstream to const char*
         std::string data_str = received_data.str();
         const char* data_buffer = data_str.c_str();
         size_t data_size = data_str.size();
-        cout << data_size << endl;
+        // cout << data_size << endl;
 
         // Send the concatenated data using sendto
+        // cout << data_buffer << endl;
         ssize_t bytes_sent = sendto(sockfd, data_buffer, data_size, 0, (const struct sockaddr *)&sender_addr, sizeof(sender_addr));
+        // cout << "data sent" << endl;
         if (bytes_sent < 0) {
             perror("Error sending data");
             close(sockfd);
