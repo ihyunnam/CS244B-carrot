@@ -60,7 +60,7 @@ int main()
     char maindir[1024];
     chdir(SAVED_FOLDER.c_str());
     getcwd(maindir, sizeof(maindir));
-    cout << maindir << endl;
+    // cout << maindir << endl;
 
     // Receive data indefinitely
     while (true)
@@ -69,8 +69,8 @@ int main()
         buffer[n] = '\0';
 
         // Trace sender address and port
-        fprintf(stderr, "Received Message from Address: %s\n", inet_ntoa(cliaddr.sin_addr));
-        fprintf(stderr, "Received Message from Port: %d\n", ntohs(cliaddr.sin_port));
+        // fprintf(stderr, "Received Message from Address: %s\n", inet_ntoa(cliaddr.sin_addr));
+        // fprintf(stderr, "Received Message from Port: %d\n", ntohs(cliaddr.sin_port));
 
         // Deserialize
         CarrotFileRequest r_file;
@@ -153,6 +153,7 @@ int main()
         else if (r_file.syscall_num() == SYS_mkdir)
         {
             int result = mkdir(r_file.buffer().c_str(), r_file.arg_two());
+            // cout << "RESULT NUM: " << result << endl;
 
             // Write response
             CarrotFileResponse r_response;

@@ -169,17 +169,8 @@ std::string shortenPath(const std::string& filePath) {
         }
     }
 
-    // throw;
     return filePath; // Return the original path if regex doesn't match
 }
-
-// string getAbsolutePath(const string& path) {
-//     try {
-//         return filesystem::absolute(path).string();
-//     } catch (const filesystem::filesystem_error& e) {
-//         throw runtime_error(e.what());
-//     }
-// }
 
 bool isBufferNonEmpty(const char buffer[])
 {
@@ -352,8 +343,6 @@ int main(int argc, char *argv[])
     string absolutePath = "./";
     map<int, string> fdToAbsolutePath;
     map<int, vector<tuple<string, int>>> localFdToRemoteFd;
-    // JSONFileManager jsonManager("fd_info.json");
-    // JSONFileManager pathToFd("path_fd_map.json");
 
     // Set up intermediaries
     for (int i = 0; i < NUM_INTERMEDIARIES; ++i)
