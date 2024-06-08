@@ -32,7 +32,6 @@ std::string files[] = {
 
 #define PORT 12346
 #define MAX_BUFFER_SIZE 100000
-bool received = false;
 using namespace std;
 
 /* This code assumes that the sender knows and can directly send requests to
@@ -44,7 +43,7 @@ using namespace std;
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     // "34.82.207.241"};
-    "34.41.143.79"};
+    "34.121.111.236"};
 // TODO: replace these with real IPs
 
 bool isBufferNonEmpty(const char buffer[])
@@ -305,6 +304,9 @@ int main(int argc, char *argv[])
             ptrace(PTRACE_GETREGS, child_pid, nullptr, &regs);
             long syscall_num = regs.orig_rax;
             char buffer[MAX_BUFFER_SIZE];
+            cout << "system call number " << syscall_num
+                    << " name " << callname(syscall_num)
+                    << " from pid " << child_pid << std::endl;
 
             // Handle sends
             if (syscall_num == SYS_sendto)
@@ -345,13 +347,11 @@ int main(int argc, char *argv[])
                     string serialized_data;
                     request.SerializeToString(&serialized_data);
 
-                    // Send to all intermediaries in a loop
-                    for (int i = 0; i < NUM_INTERMEDIARIES; i++) {
-                        sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[i], sizeof(intermediaries[i]));
-                    }
+                    int resp = sendto(sockfd_send, serialized_data.c_str(), serialized_data.length(), 0, (const struct sockaddr *)&intermediaries[0], sizeof(intermediaries[0]));
 
                     // Reset the process
-                    regs.orig_rax = SYS_getpid;
+                    regs.orig_rax = -1;
+                    regs.rax = resp;
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
                     counter += 1;
                 }
@@ -363,10 +363,8 @@ int main(int argc, char *argv[])
                 }
             }
 
-            else if (syscall_num == SYS_recvfrom && !received)
+            else if (syscall_num == SYS_recvfrom)
             {
-                received = true;
-                cout << counter << endl;
                 if (counter > 0)
                 {
                     // Update the counter and receive the message
@@ -382,28 +380,14 @@ int main(int argc, char *argv[])
                     regs.rax = n;
                     regs.orig_rax = -1;
 
-                    for (int i = 0; i < n; i += sizeof(long))
-                    {
-                        long data;
-                        memcpy(&data, buffer + i, sizeof(long));
-                        ptrace(PTRACE_POKEDATA, child_pid, regs.rsi + i, data);
-                    }
-
-                    // write_memory(child_pid, regs.rsi, (void *)buffer, strlen(buffer));
+                    write_memory(child_pid, regs.rsi, (void *)buffer, n);
                     ptrace(PTRACE_SETREGS, child_pid, NULL, &regs);
-
-                    // Close socket after receiving first message
-                    close(sockfd_send);
                 }
                 else
                 {
                     cout << "Nuull call?" << endl;
                 }
             }
-
-            outfile << "system call number " << syscall_num
-                    << " name " << callname(syscall_num)
-                    << " from pid " << child_pid << std::endl;
         }
         outfile.close();
     }

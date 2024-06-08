@@ -8,10 +8,19 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <chrono>
 
 #define PORT 12337
 #define MAX_BUFFER_SIZE 100000
 using namespace std;
+
+/*
+ * Helper utility to get the current time
+ */
+std::chrono::system_clock::time_point get_current_time()
+{
+    return std::chrono::system_clock::now();
+}
 
 int main(int argc, char *argv[])
 {
@@ -20,6 +29,8 @@ int main(int argc, char *argv[])
         std::cerr << "Usage: " << argv[0] << " <URL>\n";
         return 1;
     }
+
+    long start_time = std::chrono::time_point_cast<std::chrono::milliseconds>(get_current_time()).time_since_epoch().count();
 
     sockaddr_in servaddr;
     memset(&servaddr, 0, sizeof(servaddr));
@@ -107,16 +118,19 @@ int main(int argc, char *argv[])
     // Receive the response
     char buffer[MAX_BUFFER_SIZE];
     int bytes_received;
+    cout << "receiving bytes" << endl;
     if ((bytes_received = recv(sockfd, buffer, MAX_BUFFER_SIZE - 1, 0)) > 0)
     {
         cout << bytes_received << endl;
         buffer[bytes_received] = '\0'; // Null-terminate the received data
-        std::cout << buffer;           // Print the response
+        std::cout << buffer << endl;           // Print the response
     }
     if (bytes_received < 0)
     {
         perror("Error receiving response");
     }
+
+    cout << "It took " << std::chrono::time_point_cast<std::chrono::milliseconds>(get_current_time()).time_since_epoch().count() - start_time << "ms" << endl;
 
     // Close the socket
     close(sockfd);
