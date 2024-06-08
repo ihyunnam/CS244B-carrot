@@ -2,9 +2,18 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <chrono>
+/*
+ * Helper utility to get the current time
+ */
+std::chrono::system_clock::time_point get_current_time()
+{
+    return std::chrono::system_clock::now();
+}
 
 int main()
 {
+    long start_time = std::chrono::time_point_cast<std::chrono::milliseconds>(get_current_time()).time_since_epoch().count();
     const char *filename = "nice.txt";
 
     // Open the file in output mode (this will create the file if it does not exist)
@@ -34,6 +43,7 @@ int main()
     }
 
     std::cout << "File closed successfully." << std::endl;
+    std::cout << "It took " << std::chrono::time_point_cast<std::chrono::milliseconds>(get_current_time()).time_since_epoch().count() - start_time << "ms" << std::endl;
 
     return 0; // Return success code
 }

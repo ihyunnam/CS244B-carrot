@@ -102,7 +102,7 @@ public:
         }
 
         // Currently getting 2 closest nodes
-        for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < 1; ++i) {
             closestNodes.push_back(it->second);
             ++it;
             if (it == ring.end()) {
@@ -137,11 +137,11 @@ std::string files[] = {
 #define MAX_BUFFER_SIZE 5012
 using namespace std;
 
-#define NUM_INTERMEDIARIES 3
+#define NUM_INTERMEDIARIES 2
 struct sockaddr_in intermediaries[NUM_INTERMEDIARIES];
 const char *ip_addresses[NUM_INTERMEDIARIES] = {
     "34.134.91.102", 
-    "34.41.143.79",
+    // "34.41.143.79",
     "35.185.229.10"
 };
 
